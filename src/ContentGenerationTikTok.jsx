@@ -54,12 +54,15 @@ export default function ContentGenerationTikTok(){
             setDropdowns((prev) => ({ ...prev, [field]: false }));
         };
 
+        const [loading, setLoading] = useState(false);
+
 
         const handleGenerateResult =  async (e) => {
             e.preventDefault();
             // Handle the form submission logic here
             console.log("Form Data:", formData);
             console.log("Keywords:", keywords);
+            setLoading(true); // Show loading spinner
             try {
                 const response = await axios.post('http://localhost:9090/api/content/tiktok/tt_prime', {
                     videoGoal: formData.VideoGoal,
@@ -73,6 +76,8 @@ export default function ContentGenerationTikTok(){
                 });
             
                 console.log('Success:', response.data);
+
+                setLoading(false); // Hide loading spinner
                 toast.success('Your Recomendations has been successfully Generated!');
         
               } catch (error) {
@@ -83,6 +88,9 @@ export default function ContentGenerationTikTok(){
                     console.error('Unexpected error:', error);
                     toast.error('Failed to Fetch Result. Please try again.');
                   }}
+                  finally {
+                    setLoading(false);
+                  }
         };
 
 
@@ -441,6 +449,22 @@ export default function ContentGenerationTikTok(){
                             Generate Recommendations
                         </button>
                     </div>
+
+                    {/* Loading Spinner */}
+                    {loading && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80">
+                            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-2xl shadow-xl border border-teal-200">
+                              <img
+                                src="/MAYA_Panda_withoutBackground_withBase.png"
+                                alt="Loading mascot"
+                                className="w-48 h-48 mb-6 animate-pulse"
+                              />
+                              <p className="text-teal-700 text-xl font-semibold">
+                                Generating your awesome content...
+                              </p>
+                            </div>
+                          </div>
+                            )}
 
                     {/* Results Section */}
                     <div className="bg-white border border-gray-200 rounded-md mb-12">
