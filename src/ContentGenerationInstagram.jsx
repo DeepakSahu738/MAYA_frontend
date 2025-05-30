@@ -129,7 +129,7 @@ export default function ContentGenerationInstagram(){
                         <button className="flex-1 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-800 rounded-tl-md border-b-2 border-teal-500">
                             Input Parameters
                         </button>
-                        <button className="flex-1 py-3 bg-white hover:bg-gray-50 transition-colors text-gray-800 rounded-tr-md border-b border-gray-200">
+                        <button className="flex-1 py-3 bg-white hover:bg-gray-50 transition-colors text-gray-800 rounded-tr-md border-b border-gray-200" onClick={() => document.getElementById('results').scrollIntoView({ behavior: 'smooth' })}>
                             Results
                         </button>
                     </div>
@@ -484,6 +484,7 @@ export default function ContentGenerationInstagram(){
                             )}
 
                     {/* Results Section */}
+                    <section id="results">
                     <div className="bg-white border border-gray-200 rounded-md mb-12">
                         <details className="group" open>
                             <summary className="flex items-center justify-between p-5 cursor-pointer focus:outline-none">
@@ -847,6 +848,7 @@ export default function ContentGenerationInstagram(){
 
                         </details>
                     </div>
+                    </section>
                 </main>
             </div>
         </div>
