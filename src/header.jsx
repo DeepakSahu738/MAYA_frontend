@@ -29,11 +29,12 @@ const Header = () => {
                         </a>
 
                         <nav className="hidden md:flex items-center space-x-5">
-                            <a href="#features" onClick={goToFeatures} className="text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#features" onClick={() => {goToFeatures(); setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Features
                             </a>
 
-                            <a href="#about" onClick={goToAbout} className="text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#about" onClick={() => {goToAbout(); setIsOpen(false);}}
+                            className="text-gray-600 hover:text-gray-900 transition-colors">
                               About 
                             </a>
 
@@ -94,10 +95,10 @@ const Header = () => {
                                     </div>
 
                             
-                            <a href="#contact" onClick={goToContact} className="text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#contact" onClick={() =>{goToContact;setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Contact
                             </a>
-                            <a href="/UserAccountMgnt" className="text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="/UserAccountMgnt" onClick={()=>setIsOpen=(false)}   className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Account
                             </a>
                         </nav>
