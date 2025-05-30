@@ -52,6 +52,13 @@ export default function ContentGenerationYouTube(){
             setFormData((prev) => ({ ...prev, [field]: value }));
             setDropdowns((prev) => ({ ...prev, [field]: false }));
         };
+        const [videoIdeas, setVideoIdeas] = useState([]);
+                                const [seoList, setSeoList] = useState([]);
+                                const [hashtags, setHashtags] = useState([]);
+                                const [thumbnailAndBrandings, setThumbnailAndBrandings] = useState([]);
+                                const [engagements, setEngagements] = useState([]);
+                                const [postingTimes, setPostingTimes] = useState([]);
+        
 
         const [loading, setLoading] = useState(false);
 
@@ -75,6 +82,14 @@ export default function ContentGenerationYouTube(){
                 });
             
                 console.log('Success:', response.data);
+
+                setVideoIdeas(response.data.VideoIdeasData.videoIdeaList.videoIdeas || []);
+                setSeoList(response.data.VideoIdeasData.seoList.seoTitles || []);
+                setHashtags(response.data.VideoIdeasData.hashtagList.hashtags || []);
+                setThumbnailAndBrandings(response.data.VideoIdeasData.thumbnailAndBrandingList.thumbnailAndBrandings || []);
+                setEngagements(response.data.VideoIdeasData.engagementList.engagements || []);
+                setPostingTimes(response.data.VideoIdeasData.postingTimeList.postingTimes || []);
+
 
                 setLoading(false); // Hide loading spinner
                 toast.success('Your Recomendations has been successfully Generated!');
@@ -488,7 +503,7 @@ export default function ContentGenerationYouTube(){
                                             />
                                         </svg>
                                     </span>
-                                    <h3 className="text-lg font-bold">Post Ideas</h3>
+                                    <h3 className="text-lg font-bold">Video Ideas</h3>
                                 </div>
                                 <svg
                                     className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform"
@@ -506,37 +521,33 @@ export default function ContentGenerationYouTube(){
                                 </svg>
                             </summary>
                             <div className="px-5 pb-5">
-                                <ul className="space-y-4">
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            1
-                                        </div>
-                                        <p className="pt-0.5">10 ways to boost engagement in your Business business</p>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            2
-                                        </div>
-                                        <p className="pt-0.5">Breaking: New trends in Business you need to know</p>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            3
-                                        </div>
-                                        <p className="pt-0.5">
-                                            How our Business solution helped clients achieve results
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            4
-                                        </div>
-                                        <p className="pt-0.5">
-                                            Behind the scenes: Our team's approach to Business challenges
-                                        </p>
-                                    </li>
-                                </ul>
-                            </div>
+                                    {videoIdeas.length === 0 ? (
+                                    <p className="text-sm text-gray-500 italic">Loading ideas...</p>
+                                    ) : (
+                                    <ul className="space-y-6">
+                                        {videoIdeas.map((idea, index) => (
+                                        <li
+                                            key={index}
+                                            className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
+                                        >
+                                            <div className="flex items-center mb-2">
+                                            <div className="w-7 h-7 rounded-full bg-teal-600 text-white text-sm font-medium flex items-center justify-center mr-3">
+                                                {index + 1}
+                                            </div>
+                                            <h4 className="font-semibold text-md">{idea.videoIdea}</h4>
+                                            </div>
+                                            <p className="text-sm text-gray-700 mb-2">
+                                            <span className="font-medium text-gray-600">Script:</span> {idea.script}
+                                            </p>
+                                            <p className="text-sm text-gray-700 italic">
+                                            <span className="font-medium not-italic text-gray-600">Why this works:</span>{' '}
+                                            {idea.whyThisWorks}
+                                            </p>
+                                        </li>
+                                        ))}
+                                    </ul>
+                                    )}
+                                </div>
                         </details>
 
                         <details className="group border-t border-gray-200" open>
@@ -558,7 +569,7 @@ export default function ContentGenerationYouTube(){
                                             />
                                         </svg>
                                     </span>
-                                    <h3 className="text-lg font-bold">Optimized Headline & Description</h3>
+                                    <h3 className="text-lg font-bold">SEO friendly titles to refer</h3>
                                 </div>
                                 <svg
                                     className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform"
@@ -576,20 +587,21 @@ export default function ContentGenerationYouTube(){
                                 </svg>
                             </summary>
                             <div className="px-5 pb-5">
-                                <div className="mb-4">
-                                    <p className="text-sm font-medium text-gray-700 mb-1">Headline:</p>
-                                    <p className="font-medium">
-                                        Transform Your Business Strategy With These Proven Tips
-                                    </p>
+                                {seoList.length > 0 ? (
+                                    <ul className="space-y-4">
+                                    {seoList.map((item, index) => (
+                                        <li key={index} className="flex items-start">
+                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
+                                            {index + 1}
+                                        </div>
+                                        <p className="pt-0.5">{item.seotitle}</p>
+                                        </li>
+                                    ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500 text-sm italic">Loading Titles...</p>
+                                )}
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 mb-1">Description:</p>
-                                    <p className="text-gray-600">
-                                        Discover how our approach to Business can help you achieve your Engagement goals
-                                        faster and more effectively.
-                                    </p>
-                                </div>
-                            </div>
                         </details>
 
                         <details className="group border-t border-gray-200" open>
@@ -629,26 +641,20 @@ export default function ContentGenerationYouTube(){
                                 </svg>
                             </summary>
                             <div className="px-5 pb-5">
-                                <div className="flex flex-wrap gap-2">
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer">
-                                        #Business
-                                    </span>
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer">
-                                        #Engagement
-                                    </span>
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer">
-                                        #SocialMediaTips
-                                    </span>
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer">
-                                        #FacebookMarketing
-                                    </span>
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer">
-                                        #Video
-                                    </span>
-                                    <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer">
-                                        #MAYA
-                                    </span>
-                                </div>
+                                {hashtags.length === 0 ? (
+                                    <p className="text-sm text-gray-500 italic">Loading Hashtags...</p>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {hashtags.map((item, index) => (
+                                            <span
+                                                key={index}
+                                                className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm hover:bg-teal-100 transition-colors cursor-pointer"
+                                            >
+                                                {item.hashtag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </details>
 
@@ -671,7 +677,7 @@ export default function ContentGenerationYouTube(){
                                             />
                                         </svg>
                                     </span>
-                                    <h3 className="text-lg font-bold">Engagement Features</h3>
+                                    <h3 className="text-lg font-bold">Thumbnail And Brandings Ideas</h3>
                                 </div>
                                 <svg
                                     className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform"
@@ -689,37 +695,21 @@ export default function ContentGenerationYouTube(){
                                 </svg>
                             </summary>
                             <div className="px-5 pb-5">
-                                <ul className="space-y-4">
-                                    <li className="flex items-start">
+                                {thumbnailAndBrandings.length > 0 ? (
+                                    <ul className="space-y-4">
+                                    {thumbnailAndBrandings.map((item, index) => (
+                                        <li key={index} className="flex items-start">
                                         <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            1
+                                            {index + 1}
                                         </div>
-                                        <p className="pt-0.5">
-                                            Create a poll asking users about their biggest Business challenges
-                                        </p>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            2
-                                        </div>
-                                        <p className="pt-0.5">Add a quiz to test knowledge about Business trends</p>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            3
-                                        </div>
-                                        <p className="pt-0.5">Tag industry influencers to expand reach</p>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
-                                            4
-                                        </div>
-                                        <p className="pt-0.5">
-                                            Create a Facebook Group dedicated to Business discussions
-                                        </p>
-                                    </li>
-                                </ul>
-                            </div>
+                                        <p className="pt-0.5">{item.thumbnailAndBranding}</p>
+                                        </li>
+                                    ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500 text-sm italic">Loading Thumbnail And Branding...</p>
+                                )}
+                                </div>
                         </details>
 
                         <details className="group border-t border-gray-200" open>
@@ -747,7 +737,7 @@ export default function ContentGenerationYouTube(){
                                             />
                                         </svg>
                                     </span>
-                                    <h3 className="text-lg font-bold">Ad Format & Boosting Tips</h3>
+                                    <h3 className="text-lg font-bold">Engagement Tips</h3>
                                 </div>
                                 <svg
                                     className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform"
@@ -765,20 +755,21 @@ export default function ContentGenerationYouTube(){
                                 </svg>
                             </summary>
                             <div className="px-5 pb-5">
-                                <div className="mb-4">
-                                    <p className="text-sm font-medium text-gray-700 mb-1">Recommended Ad Format:</p>
-                                    <p className="font-medium">Carousel Ad</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 mb-2">Boosting Tips:</p>
-                                    <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                                        <li>Target users with interests in Business</li>
-                                        <li>Use custom audiences based on website visitors</li>
-                                        <li>Set a modest initial budget and scale based on performance</li>
-                                        <li>A/B test different ad creatives to optimize performance</li>
+                                {engagements.length > 0 ? (
+                                    <ul className="space-y-4">
+                                    {engagements.map((item, index) => (
+                                        <li key={index} className="flex items-start">
+                                        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-medium text-sm mr-3">
+                                            {index + 1}
+                                        </div>
+                                        <p className="pt-0.5">{item.engagementTips}</p>
+                                        </li>
+                                    ))}
                                     </ul>
+                                ) : (
+                                    <p className="text-gray-500 text-sm italic">Loading Engagement Tips...</p>
+                                )}
                                 </div>
-                            </div>
                         </details>
 
                         <details className="group border-t border-gray-200" open>
@@ -818,28 +809,38 @@ export default function ContentGenerationYouTube(){
                                 </svg>
                             </summary>
                             <div className="px-5 pb-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-gray-50 p-4 rounded-md hover:bg-gray-100 transition-colors">
-                                        <div className="flex items-center mb-2">
-                                            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-100 text-teal-500 mr-3">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-5 w-5"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                >
-                                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    ></path>
-                                                </svg>
-                                            </span>
-                                        </div>
+                                {postingTimes.length === 0 ? (
+                                    <p className="text-sm text-gray-500 italic">Loading best times...</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                        {postingTimes.map((timeObj, index) => (
+                                            <div
+                                                key={index}
+                                                className="bg-gray-50 p-4 rounded-md hover:bg-gray-100 transition-colors"
+                                            >
+                                                <div className="flex items-center mb-1">
+                                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-100 text-teal-500 mr-3">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-5 w-5"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth="2"
+                                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                            />
+                                                        </svg>
+                                                    </span>
+                                                    <span className="text-sm font-medium text-gray-700">{timeObj.postingTime}</span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </details>
                     </div>
