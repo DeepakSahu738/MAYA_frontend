@@ -98,7 +98,7 @@ const Header = () => {
                             <a href="#contact" onClick={() =>{goToContact;setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Contact
                             </a>
-                            <a href="/UserAccountMgnt" onClick={()=>setIsOpen=(false)}   className="text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="/UserAccountMgnt" className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Account
                             </a>
                         </nav>
