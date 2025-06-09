@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 export default function ContentGenerationYouTube(){
 
+    const token = sessionStorage.getItem('token');
     const [keywords, setKeywords] = useState([]);
         const [inputValue, setInputValue] = useState('');
     
@@ -79,6 +80,11 @@ export default function ContentGenerationYouTube(){
                     contentType: formData.ContentType,
                     keywordsAndSeoTags: keywords,
                     callToAction: formData.CTA,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Include the token in the request headers
+                    },
                 });
             
                 console.log('Success:', response.data);
@@ -96,8 +102,10 @@ export default function ContentGenerationYouTube(){
         
               } catch (error) {
                 if (axios.isAxiosError(error)) {
-                    console.error('Axios error:', error.response?.data || error.message);
-                    toast.error('Failed to Fetch Result. Please try again.');
+                    if (error.response && error.response.status === 401) {
+                                        toast.error('Unauthorized access. Free credit limit exceeded. Register for more credit');}
+                                        console.error('Axios error:', error.response?.data || error.message);
+                                        //toast.error('Failed to Fetch Result. Please try again.');
                   } else {
                     console.error('Unexpected error:', error);
                     toast.error('Failed to Fetch Result. Please try again.');
@@ -116,7 +124,7 @@ export default function ContentGenerationYouTube(){
                 <main className="max-w-5xl mx-auto px-4 py-8">
                     <div className="text-center mb-10">
                         <h1 className="text-4xl font-bold mb-2">
-                            <span className="text-teal-600">YouTobe Post</span>{" "}
+                            <span className="text-teal-600">YouTube Post</span>{" "}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-700 via-orange-500 to-gray-900">
   Optimizer
 </span>
@@ -126,7 +134,7 @@ export default function ContentGenerationYouTube(){
                             {/* Next: "Add animated underline effect on hover" */}
                         </h1>
                         <p className="text-gray-600 max-w-2xl mx-auto">
-                            Create highly effective YouTobe posts tailored to your specific needs and audience.
+                            Create highly effective YouTube posts tailored to your specific needs and audience.
                         </p>
                     </div>
 

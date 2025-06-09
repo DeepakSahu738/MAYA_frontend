@@ -1,6 +1,16 @@
 import React from "react"
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function UserAccountMgnt(){
+     const navigate = useNavigate();
+    const handleLogout = () => {
+        // Clear session storage or perform logout logic
+        sessionStorage.removeItem('token');
+        toast.success("You have been logged out Successfully.");
+        navigate('/login'); // Redirect to login page
+        
+    }
     return (
         <div id="UserAccountMgnt">
             <div className="min-h-screen bg-gray-50 font-sans pt-16">
@@ -47,6 +57,14 @@ export default function UserAccountMgnt(){
                                     >
                                         <span className="material-symbols-outlined mr-3">help</span>
                                         Help & Support
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="flex items-center p-3 rounded-md text-gray-600 hover:bg-gray-50 transition-colors"
+                                        onClick={handleLogout}
+                                    >
+                                        <span className="material-symbols-outlined mr-3">logout</span>
+                                        Logout
                                     </a>
                                 </nav>
                             </div>
@@ -131,9 +149,9 @@ export default function UserAccountMgnt(){
                             </div>
 
                             {/* Previous Results Section */}
-                            <div id="previous-results" className="bg-white rounded-lg shadow-sm p-6">
+                            <div id="previous-results" className="bg-white rounded-lg shadow-sm p-6 pointer-events-none opacity-30">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl font-semibold text-gray-800">Previous Results</h2>
+                                    <h2 className="text-2xl font-semibold text-gray-800">Previous Results(coming soon)</h2>
                                     <div className="flex items-center">
                                         <div className="relative">
                                             <input

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 export default function ContentGenerationPinterest(){
 
+    const token = sessionStorage.getItem('token');
     const [keywords, setKeywords] = useState([]);
         const [inputValue, setInputValue] = useState('');
     
@@ -78,6 +79,11 @@ export default function ContentGenerationPinterest(){
                     contentType: formData.ContentType,
                     searchKeywords: keywords,
                     callToAction: formData.CTA,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Include the token in the request headers
+                    },
                 });
             
                 console.log('Success:', response.data);
@@ -93,8 +99,10 @@ export default function ContentGenerationPinterest(){
         
               } catch (error) {
                 if (axios.isAxiosError(error)) {
-                    console.error('Axios error:', error.response?.data || error.message);
-                    toast.error('Failed to Fetch Result. Please try again.');
+                    if (error.response && error.response.status === 401) {
+                                        toast.error('Unauthorized access. Free credit limit exceeded. Register for more credit');}
+                                        console.error('Axios error:', error.response?.data || error.message);
+                                        //toast.error('Failed to Fetch Result. Please try again.');
                   } else {
                     console.error('Unexpected error:', error);
                     toast.error('Failed to Fetch Result. Please try again.');
