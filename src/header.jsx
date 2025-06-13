@@ -33,8 +33,8 @@ const Header = () => {
     }
   };
   const token = sessionStorage.getItem('token');
-  const role = getRoleFromToken(token);
-
+  const role = token ? getRoleFromToken(token) : null;
+  
   // Show buttons if token is not present or contains 'guest'
   const shouldShowButtons = !token || role.toLowerCase().includes('guest');
   
@@ -125,7 +125,7 @@ const Header = () => {
                             <a href="#contact" onClick={() =>{goToContact(); setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Contact
                             </a>
-                            <a href="#" onClick={(e) =>{e.preventDefault(); checkForToken();}} className="text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#" onClick={(e) =>{e.preventDefault(); checkForToken(); setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
                                 Account
                             </a>
                         </nav>

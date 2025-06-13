@@ -98,7 +98,11 @@ export default function ContentGenerationInstagram(){
               } catch (error) {
                 if (axios.isAxiosError(error)) {
                     if (error.response && error.response.status === 401) {
-                                        toast.error('Unauthorized access. Free credit limit exceeded. Register for more credit');}
+                                        //toast.error('Unauthorized access. Free credit limit exceeded. Register for more credit');
+                                        if(sessionStorage.getItem('token') === null) {toast.error('Unauthorized access. Either Register or Continue as a Guest To Access the resource.');}
+                                        else if (getRoleFromToken(token) === 'GUEST') {toast.error('Unauthorized access. Free credit limit exceeded. Register for more credit');}
+                                        else if (getRoleFromToken(token) === 'USER') {toast.error('Session expired. Please login again.');}
+                                        }
                                         console.error('Axios error:', error.response?.data || error.message);
                                         //toast.error('Failed to Fetch Result. Please try again.');
                   } else {

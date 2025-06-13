@@ -42,7 +42,7 @@ export default function Login() {
 
       const data = response.data;
       if(sessionStorage.getItem('token')) {
-        toast.error("You are already logged in as a guest.");
+        toast.error("You have already logged in as a guest once.");
         return;
       }
       if (response.status === 200) {
