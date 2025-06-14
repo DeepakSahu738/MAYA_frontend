@@ -1,8 +1,13 @@
 import React from "react"
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getRoleFromToken, getUserIdFromToken } from "./tokenDecoder/detokenizer";
+import axios from "axios";
+import { useEffect } from "react";
 
 export default function UserAccountMgnt(){
+    const [error, setError] = React.useState(null);
+    const [userData, setUserData] = React.useState(null);
      const navigate = useNavigate();
     const handleLogout = () => {
         // Clear session storage or perform logout logic
@@ -11,6 +16,33 @@ export default function UserAccountMgnt(){
         navigate('/login'); // Redirect to login page
         
     }
+    const handleUserData = async () => {
+            const token = sessionStorage.getItem('token'); 
+        const userID = getUserIdFromToken(sessionStorage.getItem('token'));
+    try {
+      const response = await axios.get("http://localhost:9090/auth/getUserById/"+userID,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Include the token in the request headers
+                    },
+                } );
+
+      const data = response.data;
+
+      if (response.status === 200) {
+        console.log('User data fetched successfully:', data);
+        setUserData(data);
+      } else {
+        toast.error(data.message || 'fetching user data failed Please Refresh the page.');
+      }
+    } catch (err) {
+      console.error('User error:', err);
+      toast.error('An error occurred while fetching user data. Please refresh the page.');
+    }
+  };
+  // ✅ Fetch data only once on mount
+        useEffect(() => {handleUserData();}, []); // empty dependency array → only runs once
+
     return (
         <div id="UserAccountMgnt">
             <div className="min-h-screen bg-gray-50 font-sans pt-16">
@@ -25,7 +57,7 @@ export default function UserAccountMgnt(){
                                         <span className="material-symbols-outlined text-3xl">person</span>
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-semibold text-gray-800">John Doe</h2>
+                                        <h2 className="text-xl font-semibold text-gray-800">{userData?.name}</h2>
                                         <p className="text-sm text-gray-500">Premium Member</p>
                                     </div>
                                 </div>
@@ -88,14 +120,14 @@ export default function UserAccountMgnt(){
                                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                                 Username
                                             </label>
-                                            <div className="bg-gray-50 p-3 rounded-md text-gray-800">johndoe123</div>
+                                            <div className="bg-gray-50 p-3 rounded-md text-gray-800">{userData?.name}</div>
                                         </div>
                                         <div className="mb-4">
                                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                                 Email Address
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                johndoe@example.com
+                                                {userData?.email}
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -111,7 +143,7 @@ export default function UserAccountMgnt(){
                                                 Joined Date
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                October 15, 2023
+                                                {userData?.createdDate}
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -119,7 +151,7 @@ export default function UserAccountMgnt(){
                                                 Last Login
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                Today at 9:45 AM
+                                                NA
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -127,7 +159,7 @@ export default function UserAccountMgnt(){
                                                 Subscription Renewal
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                October 15, 2024
+                                                NA
                                             </div>
                                         </div>
                                     </div>

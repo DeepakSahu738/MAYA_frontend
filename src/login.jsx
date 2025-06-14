@@ -24,12 +24,16 @@ export default function Login() {
         console.log("Token stored in sessionStorage:", sessionStorage.getItem('token'));
         toast.success("Login Successful!");
         navigate('/');
-      } else {
-        setError(data.message || 'Login failed');
+      } else if(response.status === 403) {
+        toast.error("Login  failed: Invalid credentials");
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Server error. Please try again later.');
+      if(err.response.status === 403) {
+        toast.error("Login  failed: Invalid credentials");
+      }else{
+      toast.error("Login  failed:  " + (err.response?.data?.message || 'Server error. Please try again later.'));
+    }
     }
   };
   

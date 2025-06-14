@@ -4,9 +4,10 @@ import { Link,useNavigate } from "react-router-dom";
 
 import { toast } from 'react-toastify';
 
-import { getRoleFromToken } from "./tokenDecoder/detokenizer";
+import { getRoleFromToken , isJwtExpired } from "./tokenDecoder/detokenizer";
 
 const Header = () => {
+  let flagForLoginRegisterButtonWhenUserTokenExpired = false; // This flag is used to show the login/register button when the user token is expired
   const navigate = useNavigate();
    const [isOpen, setIsOpen] = useState(false);
 
@@ -22,10 +23,17 @@ const Header = () => {
   const checkForToken = () => {
     const token = sessionStorage.getItem('token');
     const role = getRoleFromToken(token);
-    if (role === "USER") {
+    if (role === "USER" && !isJwtExpired(token)) {
+      console.log("Token exists, navigating to UserAccountMgnt"+isJwtExpired(token));
       // Token exists, navigate to UserAccountMgnt
       navigate("/UserAccountMgnt"); 
-    } else {
+    } else if(role=="USER" && isJwtExpired(token)) {
+      // Show a toast notification
+      toast.error("Your session has expired. Please login again.");
+      // Token exists but is expired, navigate to login
+      navigate("/login");
+    }
+    else {
       // Show a toast notification
       toast.error("Please Register/login to access your account. A guest cant access the account management page.");
       // Token does not exist, navigate to login
@@ -34,9 +42,11 @@ const Header = () => {
   };
   const token = sessionStorage.getItem('token');
   const role = token ? getRoleFromToken(token) : null;
-  
-  // Show buttons if token is not present or contains 'guest'
-  const shouldShowButtons = !token || role.toLowerCase().includes('guest');
+  if(token !== null) {
+  if(isJwtExpired(token) && role === "USER") {
+    flagForLoginRegisterButtonWhenUserTokenExpired = true ;} }
+  // Show buttons if token is not present or contains 'guest' or logged in user token is expired
+  const shouldShowButtons = !token || role === "GUEST"|| flagForLoginRegisterButtonWhenUserTokenExpired;
   
   return (
     <header className="fixed flex z-20 items-center justify-between px-6 py-4 border-b border-gray-100 shadow-md bg-white w-full">

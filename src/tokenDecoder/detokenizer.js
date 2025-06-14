@@ -18,3 +18,26 @@ export function getRoleFromToken(token) {
     return null;
   }
 }
+export function base64UrlDecode(str) {
+    // Replace URL-safe chars with Base64 standard chars
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // Pad with '=' to make length a multiple of 4
+    while (str.length % 4) {
+        str += '=';
+    }
+    return atob(str);
+}
+
+export function isJwtExpired(token) {
+    try {
+        const payloadPart = token.split('.')[1];
+        const decodedPayload = base64UrlDecode(payloadPart);
+        const payload = JSON.parse(decodedPayload);
+        const currentTime = Math.floor(Date.now() / 1000);
+        return payload.exp < currentTime;
+    } catch (e) {
+        console.error('Invalid token:', e);
+        return true; // Treat invalid token as expired
+    }
+}
+
