@@ -64,7 +64,7 @@ export default function Home() {
           </h1>
           <p className="text-gray-600 text-lg">
           MAYA is your AI-powered assistant for social media success. It helps you generate tailored, 
-          high-performing content for every platform, and provides smart analytics to track performance. 
+          high-performing content ideas for every platform, and provides smart analytics to track performance. 
           Based on audience behavior and post insights, it recommends improvements so you can grow faster, 
           engage better, and stay ahead effortlessly.
           </p>
@@ -151,7 +151,7 @@ export default function Home() {
                                           Content Generator Tool
                                       </h3>
                                       <p className="text-gray-600 text-left">
-                                          Create engaging and relevant content with our AI-powered generator that adapts to your
+                                          Create engaging and relevant content ideas with our AI-powered generator that adapts to your
                                           brand voice and style preferences.
                                       </p>
                                   </div>
