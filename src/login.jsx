@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [form, setForm] = useState({name: "",password: "" });
+  const [form, setForm] = useState({email: "",password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ export default function Login() {
   const handleGuestLogin = async () => {
     // Use hardcoded guest credentials or skip auth check
     try {
-      const form = { name: "GUEST", password: "GUEST" }; // Hardcoded guest credentials
+      const form = { email: "GUEST", password: "GUEST" }; // Hardcoded guest credentials
       const response = await axios.post("http://localhost:9090/auth/login", form);
 
       const data = response.data;
@@ -99,8 +99,8 @@ export default function Login() {
 
           <input
             type="text"
-            name="name"
-            placeholder="Enter your username"
+            name="email"
+            placeholder="Enter your email"
             value={form.name}
             onChange={handleChange}
             className="w-full p-2 border rounded"

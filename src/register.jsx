@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 export default function Register() {
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: "", email: "", password: "" , role: "USER"});
+  const [form, setForm] = useState({firstname: "", lastname: "", email: "", password: "" , role: "USER"});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -40,7 +40,11 @@ export default function Register() {
       console.log('Success:', response.data);
       navigate("/login");
     } catch (err) {
-      toast.success(err.response?.data?.message || "Registration failed Please try again later.");
+      if(err.response?.status === 409) {
+        toast.error(err.response?.data);
+      }else{toast.error(err.response?.data?.message || "Registration failed Please try again later.");}
+      console.log("Error during registration:", err);
+      
     }
   };
 
@@ -49,6 +53,22 @@ export default function Register() {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Create Your Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="firstname"
+            placeholder="Firstname"
+            className="w-full border p-2 rounded"
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="lastname"
+            placeholder="Lastname"
+            className="w-full border p-2 rounded"
+            onChange={handleChange}
+            required
+          />
           <input
             type="text"
             name="name"

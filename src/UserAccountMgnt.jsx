@@ -120,14 +120,14 @@ export default function UserAccountMgnt(){
                                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                                 Username
                                             </label>
-                                            <div className="bg-gray-50 p-3 rounded-md text-gray-800">{userData?.name}</div>
+                                            <div className="bg-gray-50 p-3 rounded-md text-gray-800">{userData?.name|| "NA"}</div>
                                         </div>
                                         <div className="mb-4">
                                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                                 Email Address
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                {userData?.email}
+                                                {userData?.email|| "NA"}
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -143,23 +143,23 @@ export default function UserAccountMgnt(){
                                                 Joined Date
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                {userData?.createdDate}
+                                                {userData?.createdDate|| "NA"}
                                             </div>
                                         </div>
                                         <div className="mb-4">
                                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                Last Login
+                                                Your Firstname
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                NA
+                                                {userData?.firstname || "NA"}
                                             </div>
                                         </div>
                                         <div className="mb-4">
                                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                Subscription Renewal
+                                                Your Lastname
                                             </label>
                                             <div className="bg-gray-50 p-3 rounded-md text-gray-800">
-                                                NA
+                                                {userData?.lastname || "NA"}
                                             </div>
                                         </div>
                                     </div>
