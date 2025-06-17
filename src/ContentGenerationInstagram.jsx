@@ -491,7 +491,7 @@ export default function ContentGenerationInstagram(){
                                 className="w-48 h-48 mb-6 animate-pulse"
                               />
                               <p className="text-teal-700 text-xl font-semibold">
-                                Generating your awesome content...
+                                Generating your awesome content ideas💡...
                               </p>
                             </div>
                           </div>
