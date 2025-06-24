@@ -71,7 +71,7 @@ export default function ContentGenerationPinterest(){
             console.log("Keywords:", keywords);
             setLoading(true); // Show loading spinner
             try {
-                const response = await axios.post('http://localhost:9090/api/content/pinterest/pin_prime', {
+                const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/api/content/pinterest/pin_prime', {
                     pinGoal: formData.PinGoal,
                     niche: formData.NicheIndustry,
                     pinType: formData.PinType,

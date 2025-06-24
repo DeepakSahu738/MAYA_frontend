@@ -72,7 +72,7 @@ export default function ContentGenerationYouTube(){
             console.log("Keywords:", keywords);
             setLoading(true); // Show loading spinner
             try {
-                const response = await axios.post('http://localhost:9090/api/content/youtube/yt_prime', {
+                const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/api/content/youtube/yt_prime', {
                     videoGoal: formData.VideoGoal,
                     niche: formData.NicheIndustry,
                     videoType: formData.VideoType,

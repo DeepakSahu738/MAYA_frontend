@@ -35,7 +35,7 @@ export default function Register() {
            
     try {
       console.log("Form data:", form); // Debugging line to check form data
-      const response = await axios.post("http://localhost:9090/auth/registerUser", form);
+      const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/registerUser", form);
       toast.success('Your Registration has been successfully Done!');
       console.log('Success:', response.data);
       navigate("/login");

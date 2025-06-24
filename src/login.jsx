@@ -15,7 +15,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post("http://localhost:9090/auth/login", form);
+      const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/login", form);
 
       const data = response.data;
 
@@ -42,7 +42,7 @@ export default function Login() {
     // Use hardcoded guest credentials or skip auth check
     try {
       const form = { email: "GUEST", password: "GUEST" }; // Hardcoded guest credentials
-      const response = await axios.post("http://localhost:9090/auth/login", form);
+      const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/login", form);
 
       const data = response.data;
       if(sessionStorage.getItem('token')) {

@@ -73,7 +73,7 @@ export default function ContentGenerationTikTok(){
             console.log("Keywords:", keywords);
             setLoading(true); // Show loading spinner
             try {
-                const response = await axios.post('http://localhost:9090/api/content/tiktok/tt_prime', {
+                const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/api/content/tiktok/tt_prime', {
                     videoGoal: formData.VideoGoal,
                     niche: formData.NicheIndustry,
                     videoFormat: formData.VideoFormat,

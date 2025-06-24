@@ -20,7 +20,7 @@ export default function UserAccountMgnt(){
             const token = sessionStorage.getItem('token'); 
         const userID = getUserIdFromToken(sessionStorage.getItem('token'));
     try {
-      const response = await axios.get("http://localhost:9090/auth/getUserById/"+userID,
+      const response = await axios.get("https://maya-backend-service-326007673689.us-central1.run.app/auth/getUserById/"+userID,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`, // Include the token in the request headers

@@ -72,7 +72,7 @@ export default function ContentGenerationSnapchat(){
             console.log("Keywords:", keywords);
             setLoading(true); // Show loading spinner
             try {
-                const response = await axios.post('http://localhost:9090/api/content/snapchat/sc_prime', {
+                const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/api/content/snapchat/sc_prime', {
                     snapGoal: formData.SnapGoal,
                     niche: formData.NicheIndustry,
                     storyType: formData.StoryType,

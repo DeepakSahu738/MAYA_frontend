@@ -72,7 +72,7 @@ export default function ContentGenenrationFlow(){
             console.log("Keywords:", keywords);
             setLoading(true); // Show loading spinner
             try {
-                const response = await axios.post('http://localhost:9090/api/content/facebook/fb_prime', {
+                const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/api/content/facebook/fb_prime', {
                     postGoal: formData.postGoal,
                     niche: formData.NicheIndustry,
                     postType: formData.PostType,

@@ -17,7 +17,7 @@ export default function Home() {
             toast.error('Please enter a valid email address.');
             return;}
         try {
-            const response = await axios.post('http://localhost:9090/contact/addContactMessages', {
+            const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/contact/addContactMessages', {
               name,
               email,
               message,
