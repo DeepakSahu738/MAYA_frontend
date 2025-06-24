@@ -10,6 +10,7 @@ const Header = () => {
   let flagForLoginRegisterButtonWhenUserTokenExpired = false; // This flag is used to show the login/register button when the user token is expired
   const navigate = useNavigate();
    const [isOpen, setIsOpen] = useState(false);
+   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); // For mobile nav
 
   const goToFeatures = () => {
     navigate("/", { state: { scrollTo: "features" } });
@@ -157,6 +158,39 @@ const Header = () => {
                             </>
                           )}
                         </div>
+
+
+
+
+                {/* Mobile hamburger */}
+      <div className="md:hidden">
+        <button onClick={() => setMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-700 focus:outline-none text-2xl">
+          ☰
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 w-full bg-white shadow-lg z-20 flex flex-col items-start space-y-2 px-6 py-4 md:hidden">
+          <a href="#features" onClick={() => { goToFeatures(); setMobileMenuOpen(false); }}>Features</a>
+          <a href="#about" onClick={() => { goToAbout(); setMobileMenuOpen(false); }}>About</a>
+          <a href="#contact" onClick={() => { goToContact(); setMobileMenuOpen(false); }}>Contact</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); checkForToken(); setMobileMenuOpen(false); }}>Account</a>
+
+          <details className="w-full">
+            <summary className="cursor-pointer py-2 text-gray-700">AI Content Lab</summary>
+            <div className="flex flex-col space-y-1 pl-4">
+              <Link to="/ContentGenerationFlow" onClick={() => setMobileMenuOpen(false)}>Facebook Optimizer</Link>
+              <Link to="/ContentGenerationInstagram" onClick={() => setMobileMenuOpen(false)}>Instagram Optimizer</Link>
+              <Link to="/ContentGenerationSnapchat" onClick={() => setMobileMenuOpen(false)}>Snapchat Optimizer</Link>
+              <Link to="/ContentGenerationYouTube" onClick={() => setMobileMenuOpen(false)}>YouTube Optimizer</Link>
+              <Link to="/ContentGenerationTikTok" onClick={() => setMobileMenuOpen(false)}>TikTok Optimizer</Link>
+              <Link to="/ContentGenerationPinterest" onClick={() => setMobileMenuOpen(false)}>Pinterest Optimizer</Link>
+            </div>
+          </details>
+        </div>
+      )}
+
                 </header>
 
   );
