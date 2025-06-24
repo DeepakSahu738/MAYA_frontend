@@ -55,38 +55,42 @@ export default function Home() {
   return (
     <div id="home" className="pt-24 flex flex-col items-center px-6 py-12 space-y-24">
       {/* main Section */}
-      <section className="flex flex-col md:flex-row items-center justify-between w-full max-w-7xl">
-        <div className="flex-1 space-y-6 mr-24">
-          <h1 className="text-4xl md:text-6xl font-bold text-black">
-            Meet <span className="text-teal-600">MAYA</span>, Your <br />
-            <span className="whitespace-nowrap">Personal</span>
-             <span className="text-teal-600 whitespace-nowrap"> Social Mate</span>
-          </h1>
-          <p className="text-gray-600 text-lg">
-          MAYA is your AI-powered assistant for social media success. It helps you generate tailored, 
-          high-performing content ideas for every platform, and provides smart analytics to track performance. 
-          Based on audience behavior and post insights, it recommends improvements so you can grow faster, 
-          engage better, and stay ahead effortlessly.
-          </p>
-          <div className="flex space-x-4">
-            <button className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">
-              <a href="/login">
-              Get Started
-              </a>   
-            </button>
-            <button className="px-6 py-3 border border-gray-400 text-black rounded-lg font-semibold hover:bg-gray-300">
-              <a href="#about">Learn More</a>
-            </button>
-          </div>
-        </div>
+      <section className="flex flex-col md:flex-row items-center justify-between w-full max-w-7xl px-4 md:px-0 mx-auto">
+                {/* Text Content */}
+                <div className="flex-1 space-y-6 mb-10 md:mb-0 md:mr-12 text-center md:text-left">
+                    <h1 className="text-3xl md:text-6xl font-bold text-black">
+                    Meet <span className="text-teal-600">MAYA</span>, Your <br />
+                    <span className="whitespace-nowrap">Personal</span>
+                    <span className="text-teal-600 whitespace-nowrap"> Social Mate</span>
+                    </h1>
+                    <p className="text-gray-600 text-base md:text-lg">
+                    MAYA is your AI-powered assistant for social media success. It helps you generate tailored, 
+                    high-performing content ideas for every platform, and provides smart analytics to track performance. 
+                    Based on audience behavior and post insights, it recommends improvements so you can grow faster, 
+                    engage better, and stay ahead effortlessly.
+                    </p>
+                    <div className="flex flex-col sm:flex-row sm:justify-center md:justify-start gap-4">
+                    <a href="/login">
+                        <button className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 w-full sm:w-auto">
+                        Get Started
+                        </button>
+                    </a>
+                    <a href="#about">
+                        <button className="px-6 py-3 border border-gray-400 text-black rounded-lg font-semibold hover:bg-gray-300 w-full sm:w-auto">
+                        Learn More
+                        </button>
+                    </a>
+                    </div>
+                </div>
 
-        <div className="flex-1 mt-10 ml-24 md:mt-0">
-          <img
-            src="/mayadashboard.png"
-            alt="Dashboard Screenshot"
-            className="rounded-xl shadow-xl w-96 h-auto"
-          />
-        </div>
+                {/* Image */}
+                <div className="flex-1 flex justify-center">
+                    <img
+                    src="/mayadashboard.png"
+                    alt="Dashboard Screenshot"
+                    className="rounded-xl shadow-xl w-full max-w-xs sm:max-w-md md:max-w-lg h-auto"
+                    />
+                </div>
       </section>
 
       {/* Features Section */}
