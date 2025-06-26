@@ -70,6 +70,9 @@ export default function ContentGenerationInstagram(){
             console.log("Keywords:", keywords);
             setLoading(true); // Show loading spinner
             try {
+                if(sessionStorage.getItem('token') === null) {toast.error('Unauthorized access. Either Register or Continue as a Guest To Access the resource.');
+                                    return;
+                                }
                 const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/api/content/instagram/insta_prime', {
                     contentGoal: formData.ContentGoal,
                     toneStyle: formData.ToneStyle,

@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from 'react-toastify';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function Register() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({firstname: "", lastname: "", email: "", password: "" , role: "USER"});
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -34,7 +36,7 @@ export default function Register() {
     }
            
     try {
-      console.log("Form data:", form); // Debugging line to check form data
+      //console.log("Form data:", form); // Debugging line to check form data
       const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/registerUser", form);
       toast.success('Your Registration has been successfully Done!');
       console.log('Success:', response.data);
@@ -85,14 +87,24 @@ export default function Register() {
             onChange={handleChange}
             required
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full border p-2 rounded"
-            onChange={handleChange}
-            required
-          />
+          <div className="relative w-full">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Password"
+                  className="w-full border p-2 pr-10 rounded"
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+
           <button
             type="submit"
             className="w-full bg-teal-600 text-white p-2 rounded hover:bg-teal-700"

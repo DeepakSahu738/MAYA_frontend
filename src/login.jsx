@@ -3,11 +3,13 @@ import axios from "axios";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function Login() {
   const [form, setForm] = useState({email: "",password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -106,14 +108,24 @@ export default function Login() {
         onChange={handleChange}
         className="w-full p-2 border rounded"
       />
-      <input
-        type="password"
-        name="password"
-        placeholder="Enter your password"
-        value={form.password}
-        onChange={handleChange}
-        className="w-full p-2 border rounded"
-      />
+      <div className="relative">
+  <input
+    type={showPassword ? 'text' : 'password'}
+    name="password"
+    placeholder="Enter your password"
+    value={form.password}
+    onChange={handleChange}
+    className="w-full p-2 pr-10 border rounded"
+  />
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+  >
+    {showPassword ? <FaEyeSlash /> : <FaEye />}
+  </button>
+</div>
+
 
       <div className="flex justify-between items-center text-sm">
         <label>
