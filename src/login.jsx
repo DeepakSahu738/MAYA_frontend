@@ -14,22 +14,27 @@ export default function Login() {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/login", form);
 
       const data = response.data;
 
       if (response.status === 200) {
+        setLoading(false);
         sessionStorage.setItem('token', data);
         console.log("Token stored in sessionStorage:", sessionStorage.getItem('token'));
         toast.success("Login Successful!");
         navigate('/');
       } else if(response.status === 403) {
+        setLoading(false);
         toast.error("Login  failed: Invalid credentials");
       }
     } catch (err) {
+    setLoading(false);
       console.error('Login error:', err);
       if(err.response.status === 403) {
         toast.error("Login  failed: Invalid credentials");
@@ -41,6 +46,7 @@ export default function Login() {
   
 
   const handleGuestLogin = async () => {
+    setLoading(true);
     // Use hardcoded guest credentials or skip auth check
     try {
       const form = { email: "GUEST", password: "GUEST" }; // Hardcoded guest credentials
@@ -48,6 +54,7 @@ export default function Login() {
 
       const data = response.data;
       if(sessionStorage.getItem('token')) {
+        setLoading(false);
         toast.error("You have already logged in as a guest once.");
         return;
       }
@@ -62,6 +69,7 @@ export default function Login() {
         toast.error(data.message || 'Login failed');
       }
     } catch (err) {
+      setLoading(false);
       console.error('Login error:', err);
       setError('Server error. Please try again later.');
       toast.error('Server error. Please try again later.');
@@ -80,7 +88,29 @@ export default function Login() {
   return (
     <div className="pt-20 flex min-h-screen items-center justify-center bg-gray-100 px-4">
   <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-lg shadow-lg overflow-hidden bg-white">
-    
+
+    {/* Loading Spinner */}
+    {loading && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80">
+                    <div className="flex flex-col items-center justify-center p-8 bg-white rounded-2xl shadow-xl border border-teal-200">
+                      
+                      {/* Bouncing Dots Loader */}
+                      <div className="flex space-x-1 mb-4">
+                        <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-150"></div>
+                        <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-300"></div>
+                      </div>
+
+                      {/* Humorous Text */}
+                      <p className="text-teal-700 text-xl font-semibold animate-pulse mb-2">
+                        Creating your gateway to awesome <span className="inline-block">💡</span>
+                      </p>
+                      <p className="text-sm text-gray-500 italic mt-1">
+                        Just double-checking you’re not a robot... 🤖
+                      </p>
+                    </div>
+                  </div>
+                )}
     {/* Left Panel */}
     <div className="w-full md:w-1/2 p-8 bg-gradient-to-br from-indigo-300 to-purple-300 text-white flex flex-col justify-center">
       <h2 className="text-2xl font-bold mb-4">Your personal assistant is waiting</h2>
