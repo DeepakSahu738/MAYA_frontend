@@ -59,6 +59,7 @@ export default function Login() {
         return;
       }
       if (response.status === 200) {
+        setLoading(false);
         sessionStorage.setItem('token', data);
         console.log("Token stored in sessionStorage:", sessionStorage.getItem('token'));
         
