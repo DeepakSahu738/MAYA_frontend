@@ -6,6 +6,7 @@ export default function Home() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handdleSendMessageOnClick = async (event) => {
         console.log("Name: ", name);
@@ -17,12 +18,13 @@ export default function Home() {
             toast.error('Please enter a valid email address.');
             return;}
         try {
+            setLoading(true);
             const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/contact/addContactMessages', {
               name,
               email,
               message,
             });
-        
+            setLoading(false);
             console.log('Success:', response.data);
             toast.success('Thank you for contacting US , Your Message has been sent successfully!');
         
@@ -54,6 +56,21 @@ export default function Home() {
 
   return (
     <div id="home" className="pt-24 flex flex-col items-center px-6 py-12 space-y-24">
+    {/* Loading Spinner */}
+                    {loading && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80">
+                            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-2xl shadow-xl border border-teal-200">
+                              <img
+                                src="/MAYA_Panda_withoutBackground_withBase.png"
+                                alt="Loading mascot"
+                                className="w-48 h-48 mb-6 animate-pulse"
+                              />
+                              <p className="text-teal-700 text-xl font-semibold">
+                                Hold on while we send your message💡...
+                              </p>
+                            </div>
+                          </div>
+                            )}
       {/* main Section */}
       <section className="flex flex-col md:flex-row items-center justify-between w-full max-w-7xl px-4 md:px-0 mx-auto">
                 {/* Text Content */}
@@ -158,6 +175,17 @@ export default function Home() {
                                           Create engaging and relevant content ideas with our AI-powered generator that adapts to your
                                           brand voice and style preferences.
                                       </p>
+                                  </div>
+                              </div>
+                              <div className="flex items-start space-x-6 group transition-all duration-300 hover:translate-y-[-5px]">
+                                  <div className="flex-shrink-0">
+                                          <div className="flex-1 flex justify-center">
+                                                    <img
+                                                    src="/labguide.png"
+                                                    alt="lab guide image"
+                                                    className="rounded-xl shadow-xl w-full max-w-xs sm:max-w-sm md:max-w-md h-auto"
+                                                    />
+                                                </div>
                                   </div>
                               </div>
                           </div>
