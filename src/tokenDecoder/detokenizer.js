@@ -41,3 +41,13 @@ export function isJwtExpired(token) {
     }
 }
 
+
+export function getEmailFromToken(token) {
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.sub || decoded.email || null;
+  } catch (error) {
+    console.error('Failed to decode token:', error);
+    return null;
+  }
+}

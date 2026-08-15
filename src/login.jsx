@@ -28,7 +28,7 @@ export default function Login() {
         sessionStorage.setItem('token', data);
         console.log("Token stored in sessionStorage:", sessionStorage.getItem('token'));
         toast.success("Login Successful!");
-        navigate('/');
+        navigate('/plan');
       } else if(response.status === 403) {
         setLoading(false);
         toast.error("Login  failed: Invalid credentials");
@@ -45,45 +45,12 @@ export default function Login() {
   };
   
 
-  const handleGuestLogin = async () => {
-    setLoading(true);
-    // Use hardcoded guest credentials or skip auth check
-    try {
-      const form = { email: "GUEST", password: "GUEST" }; // Hardcoded guest credentials
-      const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/login", form);
-
-      const data = response.data;
-      if(sessionStorage.getItem('token')) {
-        setLoading(false);
-        toast.error("You have already logged in as a guest once.");
-        return;
-      }
-      if (response.status === 200) {
-        setLoading(false);
-        sessionStorage.setItem('token', data);
-        console.log("Token stored in sessionStorage:", sessionStorage.getItem('token'));
-        
-        toast.success("Guest Login Successful!");
-        navigate('/');
-      } else {
-        setError(data.message || 'Login failed');
-        toast.error(data.message || 'Login failed');
-      }
-    } catch (err) {
-      setLoading(false);
-      console.error('Login error:', err);
-      setError('Server error. Please try again later.');
-      toast.error('Server error. Please try again later.');
-    }
-
-  };
-
   const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:5000/api/auth/facebook";
+    window.location.href = "https://maya-backend-service-326007673689.us-central1.run.app/api/auth/facebook";
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/api/auth/google";
+    window.location.href = "https://maya-backend-service-326007673689.us-central1.run.app/api/auth/google";
   };
 
   return (
@@ -181,9 +148,6 @@ export default function Login() {
         </button>
       </div>
 
-      <button onClick={handleGuestLogin} className="w-full mt-4 text-sm underline text-center text-gray-600 hover:text-black">
-        Continue as Guest
-      </button>
     </div>
   </div>
 </div>

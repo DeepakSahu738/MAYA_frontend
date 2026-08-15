@@ -1,198 +1,160 @@
-import {React,useState} from "react";
-
-import { Link,useNavigate } from "react-router-dom";
-
-import { toast } from 'react-toastify';
-
-import { getRoleFromToken , isJwtExpired } from "./tokenDecoder/detokenizer";
+import { React, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import { getRoleFromToken, isJwtExpired } from "./tokenDecoder/detokenizer";
+import DarkModeToggle from "./DarkModeToggle";
+import NotificationBell from "./components/NotificationBell";
+import AccountSwitcher from "./components/AccountSwitcher";
 
 const Header = () => {
-  let flagForLoginRegisterButtonWhenUserTokenExpired = false; // This flag is used to show the login/register button when the user token is expired
   const navigate = useNavigate();
-   const [isOpen, setIsOpen] = useState(false);
-   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); // For mobile nav
+  const location = useLocation();
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const goToFeatures = () => {
-    navigate("/", { state: { scrollTo: "features" } });
-  };
-  const goToAbout = () => {
-    navigate("/", { state: { scrollTo: "about" } });
-  };
-  const goToContact = () => {
-    navigate("/", { state: { scrollTo: "contact" } });
-  }
-  const checkForToken = () => {
-    const token = sessionStorage.getItem('token');
-    const role = getRoleFromToken(token);
-    if (role === "USER" && !isJwtExpired(token)) {
-      console.log("Token exists, navigating to UserAccountMgnt"+isJwtExpired(token));
-      // Token exists, navigate to UserAccountMgnt
-      navigate("/UserAccountMgnt"); 
-    } else if(role=="USER" && isJwtExpired(token)) {
-      // Show a toast notification
-      toast.error("Your session has expired. Please login again.");
-      // Token exists but is expired, navigate to login
-      navigate("/login");
-    }
-    else {
-      // Show a toast notification
-      toast.error("Please Register/login to access your account. A guest cant access the account management page.");
-      // Token does not exist, navigate to login
-      navigate("/login");
-    }
-  };
-  const token = sessionStorage.getItem('token');
+  // Auth state
+  const token = sessionStorage.getItem("token");
   const role = token ? getRoleFromToken(token) : null;
-  if(token !== null) {
-  if(isJwtExpired(token) && role === "USER") {
-    flagForLoginRegisterButtonWhenUserTokenExpired = true ;} }
-  // Show buttons if token is not present or contains 'guest' or logged in user token is expired
-  const shouldShowButtons = !token || role === "GUEST"|| flagForLoginRegisterButtonWhenUserTokenExpired;
-  
+  const isExpired = token ? isJwtExpired(token) : true;
+  const isAuthenticated = token && role === "USER" && !isExpired;
+
+  // Check if current path matches a nav item
+  const isActive = (path) => location.pathname === path;
+
+  // Navigation helpers for public site
+  const scrollTo = (section) => {
+    navigate("/", { state: { scrollTo: section } });
+    setMobileMenuOpen(false);
+  };
+
+  const NAV_ITEMS = [
+    { label: "Plan", path: "/plan", icon: "calendar_month" },
+    { label: "Calendar", path: "/calendar", icon: "date_range" },
+    { label: "Improve", path: "/analytics", icon: "trending_up" },
+    { label: "Ask MAYA", path: "/chat", icon: "smart_toy" },
+    { label: "Create", path: "/create", icon: "edit_square" },
+    { label: "Accounts", path: "/UserAccountMgnt", icon: "manage_accounts" },
+  ];
+
   return (
-    <header className="fixed flex z-20 items-center justify-between px-6 py-4 border-b border-gray-100 shadow-md bg-white w-full">
-                    <div className="flex items-center space-x-8">
-                    <a href="/">
-                      <div className="flex items-center">
-                            {/* <div className="flex items-center justify-center w-10 h-10 rounded-md bg-teal-600 text-white font-bold text-xl"> */}
-                            <div className="flex items-center justify-center w-10 h-10 rounded-md">
-                            <img
-                                src="/logo.png"
-                                alt="Dashboard Screenshot"
-                                className="rounded-xl w-96 h-auto"
-                              />
-                            </div>
-                            <span className="ml-2 font-bold text-xl text-gray-800">MAYA</span>
-                        </div>
-                        </a>
+    <header className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
 
-                        <nav className="hidden md:flex items-center space-x-5">
-                            <a href="#features" onClick={() => {goToFeatures(); setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
-                                Features
-                            </a>
+      {/* Left: Logo */}
+      <Link to="/" className="flex items-center space-x-2">
+        <div className="w-8 h-8 rounded-lg overflow-hidden">
+          <img src="/logo.png" alt="MAYA" className="w-full h-full object-cover" />
+        </div>
+        <span className="font-bold text-lg text-gray-900 dark:text-gray-100">MAYA</span>
+      </Link>
 
-                            <a href="#about" onClick={() => {goToAbout(); setIsOpen(false);}}
-                            className="text-gray-600 hover:text-gray-900 transition-colors">
-                              About 
-                            </a>
+      {/* Center: Navigation */}
+      <nav className="hidden md:flex items-center">
+        {isAuthenticated ? (
+          /* Authenticated: Product navigation */
+          <div className="flex items-center space-x-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive(item.path)
+                    ? "bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          /* Public: Marketing navigation */
+          <div className="flex items-center space-x-6">
+            <button onClick={() => scrollTo("features")} className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Features</button>
+            <button onClick={() => scrollTo("about")} className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">How It Works</button>
+            <a href="/demo" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Demo</a>
+            <button onClick={() => scrollTo("pricing")} className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Pricing</button>
+          </div>
+        )}
+      </nav>
 
-                            <div className="relative">
-                                      <button
-                                        onClick={() => setIsOpen((prev) => !prev)}
-                                        className="text-gray-600 hover:text-gray-900 transition-colors">
-                                        AI Content Lab                                        
-                                      </button>
-
-                                      {isOpen && (
-                                        <div className="absolute left-0 top-full mt-2 w-48 bg-white shadow-lg rounded-md z-10 flex flex-col">
-                                          
-                                          <Link to="/ContentGenerationFlow"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setIsOpen(false)} // close dropdown after click
-                                          >
-                                            Facebook Optimizer
-                                          </Link>
-
-                                          <Link to="/ContentGenerationInstagram"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setIsOpen(false)}
-                                          >
-                                            Instagram Optimizer
-                                          </Link>
-
-                                          <Link to="/ContentGenerationSnapchat"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setIsOpen(false)}
-                                          >
-                                            Snapchat Optimizer
-                                          </Link>
-
-                                          <Link to="/ContentGenerationYouTube"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setIsOpen(false)}
-                                          >
-                                            Youtube Optimizer
-                                          </Link>
-
-                                          <Link to="/ContentGenerationTikTok"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setIsOpen(false)}
-                                          >
-                                            TikTok Optimizer
-                                          </Link>
-
-                                          <Link to="/ContentGenerationPinterest"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setIsOpen(false)}
-                                          >
-                                            Pinterest Optimizer
-                                          </Link>
-
-                                        </div>
-                                      )}
-                                    </div>
-
-                            
-                            <a href="#contact" onClick={() =>{goToContact(); setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
-                                Contact
-                            </a>
-                            <a href="#" onClick={(e) =>{e.preventDefault(); checkForToken(); setIsOpen(false);}} className="text-gray-600 hover:text-gray-900 transition-colors">
-                                Account
-                            </a>
-                        </nav>
-                    </div>
-                                      
-                    <div className="md:flex items-center space-x-1">
-                          {shouldShowButtons && (
-                            <>
-                              <Link to="/register">
-                                <button className="md:flex px-5 py-2 rounded-md border border-teal-600 text-teal-800 hover:bg-teal-100 transition-colors">
-                                  Register
-                                </button>
-                              </Link>
-                              <Link to="/login">
-                                <button className="md:flex px-5 py-2 rounded-md border border-teal-600 text-teal-800 hover:bg-teal-100 transition-colors">
-                                  Login
-                                </button>
-                              </Link>
-                            </>
-                          )}
-                        </div>
-
-
-
-
-                {/* Mobile hamburger */}
-      <div className="md:hidden">
-        <button onClick={() => setMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-700 focus:outline-none text-2xl">
-          ☰
-        </button>
+      {/* Right: Controls */}
+      <div className="hidden md:flex items-center space-x-2">
+        {isAuthenticated ? (
+          <>
+            <AccountSwitcher />
+            <NotificationBell />
+            <DarkModeToggle />
+          </>
+        ) : (
+          <>
+            <DarkModeToggle />
+            <Link to="/login">
+              <button className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                Login
+              </button>
+            </Link>
+            <Link to="/register">
+              <button className="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">
+                Sign Up
+              </button>
+            </Link>
+          </>
+        )}
       </div>
+
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden text-gray-700 dark:text-gray-200 focus:outline-none"
+      >
+        <span className="material-symbols-outlined text-2xl">{isMobileMenuOpen ? "close" : "menu"}</span>
+      </button>
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-white shadow-lg z-20 flex flex-col items-start space-y-2 px-6 py-4 md:hidden">
-          <a href="#features" onClick={() => { goToFeatures(); setMobileMenuOpen(false); }}>Features</a>
-          <a href="#about" onClick={() => { goToAbout(); setMobileMenuOpen(false); }}>About</a>
-          <a href="#contact" onClick={() => { goToContact(); setMobileMenuOpen(false); }}>Contact</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); checkForToken(); setMobileMenuOpen(false); }}>Account</a>
-
-          <details className="w-full">
-            <summary className="cursor-pointer py-2 text-gray-700">AI Content Lab</summary>
-            <div className="flex flex-col space-y-1 pl-4">
-              <Link to="/ContentGenerationFlow" onClick={() => setMobileMenuOpen(false)}>Facebook Optimizer</Link>
-              <Link to="/ContentGenerationInstagram" onClick={() => setMobileMenuOpen(false)}>Instagram Optimizer</Link>
-              <Link to="/ContentGenerationSnapchat" onClick={() => setMobileMenuOpen(false)}>Snapchat Optimizer</Link>
-              <Link to="/ContentGenerationYouTube" onClick={() => setMobileMenuOpen(false)}>YouTube Optimizer</Link>
-              <Link to="/ContentGenerationTikTok" onClick={() => setMobileMenuOpen(false)}>TikTok Optimizer</Link>
-              <Link to="/ContentGenerationPinterest" onClick={() => setMobileMenuOpen(false)}>Pinterest Optimizer</Link>
-            </div>
-          </details>
+        <div className="absolute top-full left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg z-20 md:hidden">
+          <div className="px-6 py-4 space-y-1">
+            {isAuthenticated ? (
+              /* Authenticated mobile */
+              <>
+                {NAV_ITEMS.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                      isActive(item.path)
+                        ? "bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3 flex items-center space-x-3">
+                  <AccountSwitcher />
+                  <NotificationBell />
+                  <DarkModeToggle />
+                </div>
+              </>
+            ) : (
+              /* Public mobile */
+              <>
+                <button onClick={() => scrollTo("features")} className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">Features</button>
+                <button onClick={() => scrollTo("about")} className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">How It Works</button>
+                <a href="/demo" target="_blank" className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">Demo</a>
+                <button onClick={() => scrollTo("pricing")} className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">Pricing</button>
+                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3 space-y-2">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg">Login</Link>
+                  <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center px-4 py-2.5 text-sm bg-teal-600 text-white rounded-lg font-medium">Sign Up</Link>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
-
-                </header>
-
+    </header>
   );
 };
 

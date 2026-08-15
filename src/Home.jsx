@@ -1,327 +1,278 @@
-import {React, useState} from 'react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-export default function Home() {
+import { getRoleFromToken, isJwtExpired } from './tokenDecoder/detokenizer';
 
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [message, setMessage] = useState('');
-    const [loading, setLoading] = useState(false);
+function ContactForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handdleSendMessageOnClick = async (event) => {
-        console.log("Name: ", name);
-        console.log("Email: ", email);
-        console.log("Message: ", message);
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        event.preventDefault(); // Prevent the default form submission behavior
-        if (!emailRegex.test(email)) {
-            toast.error('Please enter a valid email address.');
-            return;}
-        try {
-            setLoading(true);
-            const response = await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/contact/addContactMessages', {
-              name,
-              email,
-              message,
-            });
-            setLoading(false);
-            console.log('Success:', response.data);
-            toast.success('Thank you for contacting US , Your Message has been sent successfully!');
-        
-            // Reset form
-            setName('');
-            setEmail('');
-            setMessage('');
-          } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error('Axios error:', error.response?.data || error.message);
-                toast.error('Failed to send message. Please try again.');
-              } else {
-                console.error('Unexpected error:', error);
-                toast.error('Failed to send message. Please try again.');
-              }}
-          
-    }
-    
-    const handleSendNameChange = (e) => {
-        setName(e.target.value);
-    }
-    const handleSendEmailChange = (e) => {
-        setEmail(e.target.value);
-    }
-    const handleSendMessageChange = (e) => {
-        setMessage(e.target.value);
-    }
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) { toast.error('Please enter a valid email.'); return; }
+    try {
+      setLoading(true);
+      await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/contact/addContactMessages', { name, email, message });
+      toast.success('Message sent successfully!');
+      setName(''); setEmail(''); setMessage('');
+    } catch { toast.error('Failed to send. Please try again.'); }
+    finally { setLoading(false); }
+  };
 
   return (
-    <div id="home" className="pt-24 flex flex-col items-center px-6 py-12 space-y-24">
-    {/* Loading Spinner */}
-                    {loading && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80">
-                            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-2xl shadow-xl border border-teal-200">
-                              <img
-                                src="/MAYA_Panda_withoutBackground_withBase.png"
-                                alt="Loading mascot"
-                                className="w-48 h-48 mb-6 animate-pulse"
-                              />
-                              <p className="text-teal-700 text-xl font-semibold">
-                                Hold on while we send your message💡...
-                              </p>
-                            </div>
-                          </div>
-                            )}
-      {/* main Section */}
-      <section className="flex flex-col md:flex-row items-center justify-between w-full max-w-7xl px-4 md:px-0 mx-auto">
-                {/* Text Content */}
-                <div className="flex-1 space-y-6 mb-10 md:mb-0 md:mr-12 text-center md:text-left">
-                    <h1 className="text-3xl md:text-6xl font-bold text-black">
-                    Meet <span className="text-teal-600">MAYA</span>, Your <br />
-                    <span className="whitespace-nowrap">Personal</span>
-                    <span className="text-teal-600 whitespace-nowrap"> Social Mate</span>
-                    </h1>
-                    <p className="text-gray-600 text-base md:text-lg">
-                    MAYA is your AI-powered assistant for social media success. It helps you generate tailored, 
-                    high-performing content ideas for every platform, and provides smart analytics to track performance. 
-                    Based on audience behavior and post insights, it recommends improvements so you can grow faster, 
-                    engage better, and stay ahead effortlessly.
-                    </p>
-                    <div className="flex flex-col sm:flex-row sm:justify-center md:justify-start gap-4">
-                    <a href="/login">
-                        <button className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 w-full sm:w-auto">
-                        Get Started
-                        </button>
-                    </a>
-                    <a href="#about">
-                        <button className="px-6 py-3 border border-gray-400 text-black rounded-lg font-semibold hover:bg-gray-300 w-full sm:w-auto">
-                        Learn More
-                        </button>
-                    </a>
-                    </div>
-                </div>
+    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+      <input type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} required
+        className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+      <input type="email" placeholder="Your Email" value={email} onChange={(e) => setEmail(e.target.value)} required
+        className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+      <textarea rows="4" placeholder="Your Message" value={message} onChange={(e) => setMessage(e.target.value)} required
+        className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+      <button type="submit" disabled={loading}
+        className="w-full h-12 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-500 disabled:opacity-50 transition-colors text-sm">
+        {loading ? "Sending..." : "Send Message"}
+      </button>
+    </form>
+  );
+}
 
-                {/* Image */}
-                <div className="flex-1 flex justify-center">
-                    <img
-                    src="/mayadashboard.png"
-                    alt="Dashboard Screenshot"
-                    className="rounded-xl shadow-xl w-full max-w-xs sm:max-w-md md:max-w-lg h-auto"
-                    />
-                </div>
+export default function Home() {
+  const navigate = useNavigate();
+
+  const getAuthTarget = () => {
+    const token = sessionStorage.getItem("token");
+    if (token && getRoleFromToken(token) === "USER" && !isJwtExpired(token)) {
+      return "/plan";
+    }
+    return "/register";
+  };
+
+  return (
+    <div className="flex flex-col items-center bg-white dark:bg-gray-950 overflow-hidden">
+
+      {/* Hero — stacked: text above, image straddles boundary */}
+      <section className="relative w-full pt-32 pb-56 px-6 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 overflow-visible">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-teal-500/8 rounded-full blur-[120px]" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-violet-500/5 rounded-full blur-[100px]" />
+
+        <div className="relative max-w-[900px] mx-auto text-center">
+          <div className="inline-flex items-center px-4 py-1.5 bg-white/5 border border-white/10 text-teal-400 text-xs font-medium rounded-full mb-8 backdrop-blur-sm">
+            <span className="w-2 h-2 bg-teal-400 rounded-full mr-2 animate-pulse" />
+            AI-Powered Creator Operations
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-bold text-white leading-[1.1] mb-6 tracking-tight">
+            Your creator workspace.<br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400">All in one place.</span>
+          </h1>
+
+          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Connect your social accounts. MAYA generates weekly plans, manages drafts, schedules posts, and helps you publish consistently — all from one workspace.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+            <a href="/demo" target="_blank" rel="noopener noreferrer">
+              <button className="h-12 px-8 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/15 backdrop-blur-sm transition-all flex items-center justify-center space-x-2 text-sm w-full sm:w-auto min-w-[200px]">
+                <span className="material-symbols-outlined text-lg">play_circle</span>
+                <span>Try the Live Demo</span>
+              </button>
+            </a>
+            <Link to={getAuthTarget()}>
+              <button className="h-12 px-8 bg-teal-500 text-white rounded-xl font-semibold hover:bg-teal-400 shadow-lg shadow-teal-500/25 transition-all text-sm w-full sm:w-auto min-w-[200px]">
+                Connect My Accounts
+              </button>
+            </Link>
+          </div>
+
+          <p className="text-xs text-gray-500">No credit card required · Demo works instantly</p>
+        </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="pt-24 flex flex-col items-center w-full max-w-5xl text-center space-y-12">
-          <div className="bg-white py-0 md:py-0 w-full">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="text-center mb-12">
-                      <p className="uppercase tracking-wide font-semibold text-teal-600">FEATURES</p>
-                      <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                          Everything you need in one place
-                      </h2>
-                      <p className="mt-4 max-w-2xl mx-auto text-gray-600">
-                          MAYA combines powerful features to help you manage your personal and professional life effortlessly.
-                      </p>
-                  </div>
-                  <div className="space-y-16">
-                      <div className="space-y-6">
-                          <h3 className="text-2xl border-l-4 border-teal-400 pl-3 text-left">Live Features</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12 lg:gap-16">
-                              <div className="flex items-start space-x-6 group transition-all duration-300 hover:translate-y-[-5px]">
-                                  <div className="flex-shrink-0">
-                                      <div className="h-12 w-12 rounded-full bg-teal-50 flex items-center justify-center transition-all duration-300 group-hover:bg-teal-100">
-                                          <span className="material-symbols-outlined text-teal-600 text-xl">psychology</span>
-                                      </div>
-                                  </div>
-                                  <div>
-                                      <h3 className="text-xl font-medium text-gray-900 mb-2 transition-colors duration-300 text-left">
-                                          AI-Powered Intelligence
-                                      </h3>
-                                      <p className="text-gray-600 text-left">
-                                          MAYA adjust to your preferences to provide personalized AI Powered recommendations.
-                                      </p>
-                                  </div>
-                              </div>
-
-                              <div className="flex items-start space-x-6 group transition-all duration-300 hover:translate-y-[-5px]">
-                                  <div className="flex-shrink-0">
-                                      <div className="h-12 w-12 rounded-full bg-teal-50 flex items-center justify-center transition-all duration-300 group-hover:bg-teal-100">
-                                          <span className="material-symbols-outlined text-teal-600 text-xl">
-                                                public
-                                          </span>
-                                      </div>
-                                  </div>
-                                  <div>
-                                      <h3 className="text-xl font-medium text-gray-900 mb-2 transition-colors duration-300 text-left">
-                                          Platforms Supported
-                                      </h3>
-                                      <p className="text-gray-600 text-left">
-                                      Supports all major platforms: Instagram, Facebook, TikTok, YouTube, Pinterest, and Snapchat - optimized content tailored for each.
-                                      </p>
-                                  </div>
-                              </div>
-
-                              <div className="flex items-start space-x-6 group transition-all duration-300 hover:translate-y-[-5px]">
-                                  <div className="flex-shrink-0">
-                                      <div className="h-12 w-12 rounded-full bg-teal-50 flex items-center justify-center transition-all duration-300 group-hover:bg-teal-100">
-                                          <span className="material-symbols-outlined text-teal-600 text-xl">auto_awesome</span>
-                                      </div>
-                                  </div>
-                                  <div>
-                                      <h3 className="text-xl font-medium text-gray-900 mb-2 transition-colors duration-300 text-left">
-                                          Content Generator Tool
-                                      </h3>
-                                      <p className="text-gray-600 text-left">
-                                          Create engaging and relevant content ideas with our AI-powered generator that adapts to your
-                                          brand voice and style preferences.
-                                      </p>
-                                  </div>
-                              </div>
-                              <div className="flex items-start space-x-6 group transition-all duration-300 hover:translate-y-[-5px]">
-                                  <div className="flex-shrink-0">
-                                          <div className="flex-1 flex justify-center">
-                                                    <img
-                                                    src="/labguide.png"
-                                                    alt="lab guide image"
-                                                    className="rounded-xl shadow-xl w-full max-w-xs sm:max-w-sm md:max-w-md h-auto"
-                                                    />
-                                                </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-
-                      <div className="space-y-8">
-                          <h3 className="text-2xl text-gray-900 border-l-4 border-teal-400 pl-3 text-left">Coming Soon</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12 lg:gap-16">
-                              <div className="flex items-start space-x-6 group transition-all duration-300 hover:translate-y-[-5px] hover:bg-teal-50/30 p-4 rounded-lg">
-                                  <div className="flex-shrink-0">
-                                      <div className="h-12 w-12 rounded-full bg-teal-50 flex items-center justify-center transition-all duration-300 group-hover:bg-teal-100 group-hover:scale-110">
-                                          <span className="material-symbols-outlined text-teal-600 text-xl">analytics</span>
-                                      </div>
-                                  </div>
-                                  <div>
-                                      <div className="flex items-center">
-                                          <h3 className="text-xl font-medium text-gray-900 mb-2 transition-colors duration-300">
-                                              Social Media Analytics
-                                          </h3>
-                                          <span className="ml-2 text-xs font-semibold text-teal-500 bg-teal-50 px-2 py-0.5 rounded-full">
-                                              Coming Q4 2025
-                                          </span>
-                                      </div>
-                                      <p className="text-gray-600 text-left">
-                                          Connect your social media accounts to receive comprehensive analytics and AI-driven
-                                          suggestions to improve your online presence and engagement.
-                                      </p>
-                                      <div className="mt-4 inline-flex items-center text-teal-600 font-medium group-hover:text-teal-700 cursor-pointer">
-                                          <span>Learn more</span>
-                                          <span className="material-symbols-outlined ml-1 text-sm transition-transform group-hover:translate-x-1">
-                                              arrow_forward
-                                          </span>
-                                      </div>
-                                  </div>
-                              </div>
-
-                              <div className="bg-gradient-to-br from-teal-100 to-gray-50 p-7 rounded-xl border border-teal-200 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                                  <div className="flex items-center mb-4">
-                                      <span className="material-symbols-outlined text-teal-600 mr-2">tips_and_updates</span>
-                                      <h3 className="text-xl font-bold text-gray-900">How It Will Work</h3>
-                                  </div>
-                                  <ol className="space-y-4 text-gray-600">
-                                      <li className="flex items-start bg-white bg-opacity-70 p-3 rounded-lg transition-all duration-200 hover:bg-teal-50">
-                                          <span className="bg-teal-100 text-teal-600 rounded-full h-6 w-6 flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0 shadow-sm">
-                                              1
-                                          </span>
-                                          <p className="mt-0.5">
-                                              Simply connect your social media accounts or provide your user ID
-                                          </p>
-                                      </li>
-                                      <li className="flex items-start bg-white bg-opacity-70 p-3 rounded-lg transition-all duration-200 hover:bg-teal-50">
-                                          <span className="bg-teal-100 text-teal-600 rounded-full h-6 w-6 flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0 shadow-sm">
-                                              2
-                                          </span>
-                                          <p className="mt-0.5">
-                                              Our AI will analyze your content performance and audience engagement
-                                          </p>
-                                      </li>
-                                      <li className="flex items-start bg-white bg-opacity-70 p-3 rounded-lg transition-all duration-200 hover:bg-teal-50">
-                                          <span className="bg-teal-100 text-teal-600 rounded-full h-6 w-6 flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0 shadow-sm">
-                                              3
-                                          </span>
-                                          <p className="mt-0.5">
-                                              Receive tailored recommendations to improve your social media strategy
-                                          </p>
-                                      </li>
-                                  </ol>
-                                  <div className="mt-5 text-xs text-teal-600 italic text-right">
-                                      * Beta access will be available to logged in users first
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section id="about" className="pt-24 flex flex-col items-center w-full max-w-5xl text-center space-y-12">
-          <div>
-            <h3 className="text-teal-600 font-semibold">ABOUT US</h3>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">
-              Who We Are
-            </h2>
-            <p className="text-gray-600 mt-4">
-            We are a team of passionate developers and designers dedicated to creating innovative solutions that enhance productivity and simplify daily tasks.
-            Our goal is to build tools that are not only functional but also easy to use and enjoyable. We value clean design, efficient code, and user-friendly experiences.
-            Driven by creativity and collaboration, we’re committed to making a positive impact through technology.
-            </p>
-          </div>
-          </section>
-
-        {/* Contact Section */} 
-        <section id="contact" className="pt-24 flex flex-col items-center w-full max-w-5xl text-center space-y-12">
-        <div>
-            <h3 className="text-teal-600 font-semibold">CONTACT US</h3>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">
-            Get in Touch
-            </h2>
-            <p className="text-gray-600 mt-4">
-            Have questions or feedback? We'd love to hear from you! Reach out to us anytime.
-            </p>
+      {/* Dashboard image — overlapping hero and next section */}
+      <div className="relative -mt-44 mb-12 px-6 z-10">
+        <div className="relative max-w-[850px] mx-auto">
+          <div className="absolute inset-0 bg-teal-500/10 rounded-3xl blur-[50px] scale-[0.92]" />
+          <img
+            src="/homepage_hero.png"
+            alt="MAYA Operations Dashboard"
+            className="relative w-full h-auto rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl"
+          />
         </div>
-        <form className="mt-8 space-y-6 w-full max-w-md" id = "contact-form" onSubmit={handdleSendMessageOnClick}>
-            <input
-            type="text"
-            placeholder="Your Name"
-            value={name}
-            onChange={handleSendNameChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-            required
-            />
-            <input
-            type="email"
-            placeholder="Your Email"
-            value={email}
-            onChange={handleSendEmailChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-            required
-            />
-            <textarea
-            rows="4"
-            placeholder="Your Message"
-            value={message}
-            onChange={handleSendMessageChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-            required
-            ></textarea>
-            <button className="w-full px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700"
-            type="submit">
-            Send Message
-            </button>   
-            </form>
-        </section>
-        
+        <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4">Your Operations Dashboard — plans, schedules, and AI suggestions in one view</p>
+      </div>
+
+      {/* What happens after you connect? */}
+      <section className="w-full py-28 px-6">
+        <div className="max-w-[900px] mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">After you connect your accounts</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Here's what happens next</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: "calendar_month",
+                title: "See your week",
+                desc: "MAYA builds a personalized 7-day publishing plan from your connected creator accounts.",
+              },
+              {
+                icon: "edit_note",
+                title: "Review drafts",
+                desc: "Edit AI-generated captions, hooks, and post ideas before saving them to your calendar.",
+              },
+              {
+                icon: "dashboard",
+                title: "Stay organized",
+                desc: "Track scheduled posts, pending drafts, and connected platforms from one operational dashboard.",
+              },
+            ].map((item, idx) => (
+              <div key={idx} className="bg-white dark:bg-white/5 rounded-2xl p-7 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 hover:shadow-lg dark:hover:shadow-teal-500/5 transition-all backdrop-blur-sm group text-center">
+                <div className="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 text-xl">{item.icon}</span>
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works — Steps */}
+      <section id="features" className="w-full py-28 px-6 bg-gray-50 dark:bg-gray-900/50">
+        <div className="max-w-[900px] mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">How MAYA works</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Connect once. Plan every week.</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              { step: "01", icon: "link", title: "Connect", desc: "Link accounts via secure OAuth. Takes 30 seconds." },
+              { step: "02", icon: "auto_awesome", title: "Generate", desc: "AI creates a 7-day plan with captions, hooks, and timing." },
+              { step: "03", icon: "calendar_month", title: "Schedule", desc: "Save drafts to your calendar. Edit before publishing." },
+              { step: "04", icon: "trending_up", title: "Grow", desc: "Insights help you refine and stay consistent over time." },
+            ].map((item, idx) => (
+              <div key={idx} className="relative text-center group">
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center mx-auto mb-4 group-hover:border-teal-400/50 group-hover:bg-teal-50 dark:group-hover:bg-teal-500/10 transition-all backdrop-blur-sm">
+                  <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 text-xl">{item.icon}</span>
+                </div>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mb-1">{item.step}</p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">{item.title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="about" className="w-full py-28 px-6">
+        <div className="max-w-[900px] mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">Capabilities</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">One workspace for everything</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              { icon: "devices", title: "Multi-Platform Workspace", desc: "Connect Instagram, Facebook, TikTok, YouTube, and Snapchat. Each account has an isolated workspace you can switch between instantly." },
+              { icon: "auto_awesome", title: "AI Weekly Planning", desc: "Generate a personalized 7-day plan with captions, hooks, hashtags, and optimal posting times — based on your real content patterns." },
+              { icon: "edit_calendar", title: "Draft & Calendar Management", desc: "Create, edit, approve, and schedule drafts visually. See your entire week at a glance and never miss a publishing window." },
+              { icon: "smart_toy", title: "AI Workflow Assistant", desc: "Ask MAYA anything — when to post, what gaps exist, how to repurpose content. Every answer is personalized to your connected accounts." },
+            ].map((f, idx) => (
+              <div key={idx} className="bg-white dark:bg-white/5 rounded-2xl p-7 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 hover:shadow-lg dark:hover:shadow-teal-500/5 transition-all backdrop-blur-sm group">
+                <div className="w-11 h-11 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 text-lg">{f.icon}</span>
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">{f.title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Section */}
+      <section className="w-full py-28 px-6 bg-gray-50 dark:bg-gray-900/50">
+        <div className="max-w-[700px] mx-auto">
+          <div className="bg-gray-900 dark:bg-white/5 rounded-3xl p-12 border border-gray-800 dark:border-white/10 text-center relative overflow-hidden backdrop-blur-sm">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-teal-500/10 rounded-full blur-[80px] -mt-32" />
+            <div className="relative">
+              <div className="inline-flex items-center px-3 py-1.5 bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-medium rounded-full mb-6">
+                <span className="material-symbols-outlined text-sm mr-1.5">science</span>
+                No sign-up required
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">See it working</h2>
+              <p className="text-sm text-gray-400 mb-8 max-w-md mx-auto">
+                Full interactive demo with live creator data. Plans, schedules, AI suggestions — all functional.
+              </p>
+              <a href="/demo" target="_blank" rel="noopener noreferrer">
+                <button className="h-12 px-8 bg-teal-500 text-white font-semibold rounded-xl hover:bg-teal-400 shadow-lg shadow-teal-500/25 transition-all inline-flex items-center space-x-2 text-sm">
+                  <span className="material-symbols-outlined text-lg">play_circle</span>
+                  <span>Launch Demo</span>
+                </button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust */}
+      <section className="w-full py-12 px-6">
+        <div className="max-w-[700px] mx-auto">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-gray-500 dark:text-gray-400">
+            <span className="flex items-center space-x-1.5"><span className="material-symbols-outlined text-green-500 text-sm">lock</span><span>No passwords stored</span></span>
+            <span className="flex items-center space-x-1.5"><span className="material-symbols-outlined text-blue-500 text-sm">visibility</span><span>Read-only access</span></span>
+            <span className="flex items-center space-x-1.5"><span className="material-symbols-outlined text-purple-500 text-sm">link_off</span><span>Disconnect anytime</span></span>
+            <span className="flex items-center space-x-1.5"><span className="material-symbols-outlined text-teal-500 text-sm">shield</span><span>We never sell your data</span></span>
+          </div>
+        </div>
+      </section>
+
+      {/* Built for Growing Creators */}
+      <section className="w-full py-24 px-6">
+        <div className="max-w-[600px] mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-50 mb-4">Built for growing creators</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
+            Today, MAYA helps you plan, schedule, and manage your creator operations. Next, it will evolve into a unified creator profile for collaborations, sponsorships, campaign management, and monetization opportunities across connected platforms.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {["Creator Discovery", "Brand Collaboration", "Campaign Workflows", "Monetization Tools"].map((t, i) => (
+              <span key={i} className="text-xs px-4 py-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 rounded-full backdrop-blur-sm">{t}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="w-full py-24 px-6 bg-gray-50 dark:bg-gray-900/50">
+        <div className="max-w-[500px] mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-50 mb-4">Ready to get organized?</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Join creators using MAYA to plan, schedule, and grow consistently.</p>
+          <Link to={getAuthTarget()}>
+            <button className="h-14 px-10 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-500 shadow-lg shadow-teal-600/20 transition-all text-sm">
+              Get Started Free
+            </button>
+          </Link>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Free during beta · No credit card</p>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="w-full py-24 px-6">
+        <div className="max-w-[450px] mx-auto text-center">
+          <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">Contact</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-3">Get in touch</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Questions or feedback? We'd love to hear from you.</p>
+          <ContactForm />
+        </div>
+      </section>
+
     </div>
   );
 }
