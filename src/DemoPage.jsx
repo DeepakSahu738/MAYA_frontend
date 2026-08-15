@@ -222,15 +222,21 @@ export default function DemoPage() {
           {/* Creator Selector */}
           <div className="inline-flex items-center space-x-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Demo Profile:</span>
-            <select
-              value={selectedCreator?.id || ""}
-              onChange={(e) => setSelectedCreator(demoCreators.find(c => c.id === Number(e.target.value)))}
-              className="border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              {demoCreators.map(c => (
-                <option key={c.id} value={c.id}>@{c.username} — {c.niche}</option>
-              ))}
-            </select>
+            {demoCreators.length > 1 ? (
+              <select
+                value={selectedCreator?.id || ""}
+                onChange={(e) => setSelectedCreator(demoCreators.find(c => c.id === Number(e.target.value)))}
+                className="border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {demoCreators.map(c => (
+                  <option key={c.id} value={c.id}>@{c.username} — {c.niche}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                @{selectedCreator?.username || "loading..."} {selectedCreator?.niche ? `— ${selectedCreator.niche}` : ""}
+              </span>
+            )}
           </div>
         </div>
 
