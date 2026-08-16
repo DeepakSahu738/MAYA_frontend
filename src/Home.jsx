@@ -16,7 +16,7 @@ function ContactForm() {
     if (!emailRegex.test(email)) { toast.error('Please enter a valid email.'); return; }
     try {
       setLoading(true);
-      await axios.post('https://maya-backend-service-326007673689.us-central1.run.app/contact/addContactMessages', { name, email, message });
+      await axios.post('https://maya-backend-service-326007673689.asia-southeast1.run.app/contact/addContactMessages', { name, email, message });
       toast.success('Message sent successfully!');
       setName(''); setEmail(''); setMessage('');
     } catch { toast.error('Failed to send. Please try again.'); }

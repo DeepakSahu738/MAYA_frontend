@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { useCreator } from "../analytics/CreatorContext";
 import { getAuthHeaders } from "../analytics/apiHelper";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 const PROMPTS = [
   { icon: "help", label: "Unanswered Questions", prompt: "Show my top unanswered questions sorted by priority" },

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useCreator } from "../analytics/CreatorContext";
 import { getAxiosConfig } from "../analytics/apiHelper";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];

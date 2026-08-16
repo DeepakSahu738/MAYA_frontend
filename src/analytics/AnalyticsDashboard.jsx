@@ -21,7 +21,7 @@ import QuestionsVsStatements from "./QuestionsVsStatements";
 import { getAxiosConfig, getAuthHeaders } from "./apiHelper";
 import { DashboardSkeleton } from "../components/SkeletonLoader";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 const METRICS_GUIDE = [
   {

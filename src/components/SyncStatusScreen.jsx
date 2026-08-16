@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreator } from "../analytics/CreatorContext";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 export default function SyncStatusScreen({ creatorId, platform, username, onComplete }) {
   const navigate = useNavigate();

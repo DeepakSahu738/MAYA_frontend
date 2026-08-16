@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { useCreator } from "./CreatorContext";
 import { getAuthHeaders } from "./apiHelper";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 export default function AIChatPanel({ isOpen, onClose }) {
   const { selectedCreator } = useCreator();

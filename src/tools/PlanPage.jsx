@@ -6,7 +6,7 @@ import { getAxiosConfig } from "../analytics/apiHelper";
 import { getRoleFromToken } from "../tokenDecoder/detokenizer";
 import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat } from "react-icons/fa";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 // Platform icon component
 function PlatformIcon({ platform, size = "text-base" }) {

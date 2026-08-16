@@ -113,7 +113,7 @@ src/
 
 ### Base URL (ALL endpoints — production):
 ```
-https://maya-backend-service-326007673689.us-central1.run.app
+https://maya-backend-service-326007673689.asia-southeast1.run.app
 ```
 
 ### Auth:

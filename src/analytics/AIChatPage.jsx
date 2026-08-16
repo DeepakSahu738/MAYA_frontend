@@ -6,7 +6,7 @@ import { getAuthHeaders } from "./apiHelper";
 import ChatPromptGuide from "../components/ChatPromptGuide";
 import { getUserIdFromToken, getRoleFromToken } from "../tokenDecoder/detokenizer";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 function getGreeting() {
   const hour = new Date().getHours();

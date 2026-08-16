@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { useCreator } from "./CreatorContext";
 import SyncStatusScreen from "../components/SyncStatusScreen";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 export default function PhylloConnectButton({ className = "" }) {
   const { authState, addConnectedAccount } = useCreator();

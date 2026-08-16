@@ -19,7 +19,7 @@ export default function Login() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("https://maya-backend-service-326007673689.us-central1.run.app/auth/login", form);
+      const response = await axios.post("https://maya-backend-service-326007673689.asia-southeast1.run.app/auth/login", form);
 
       const data = response.data;
 
@@ -46,11 +46,11 @@ export default function Login() {
   
 
   const handleFacebookLogin = () => {
-    window.location.href = "https://maya-backend-service-326007673689.us-central1.run.app/api/auth/facebook";
+    window.location.href = "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/auth/facebook";
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "https://maya-backend-service-326007673689.us-central1.run.app/api/auth/google";
+    window.location.href = "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/auth/google";
   };
 
   return (

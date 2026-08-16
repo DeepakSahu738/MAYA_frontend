@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useCreator } from "../analytics/CreatorContext";
 import { getAuthHeaders } from "../analytics/apiHelper";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 const PROMPTS = [
   { icon: "search", label: "Content Gaps", prompt: "What content gaps do I have? What topics does my audience want that I haven't covered?", color: "from-orange-500 to-amber-500" },

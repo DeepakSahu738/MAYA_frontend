@@ -4,7 +4,7 @@ import { getUserIdFromToken, getRoleFromToken, isJwtExpired } from "../tokenDeco
 
 const CreatorContext = createContext();
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 // Helper to get auth state from sessionStorage
 function getAuthState() {

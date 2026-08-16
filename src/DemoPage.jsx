@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import ChatPromptGuide from "./components/ChatPromptGuide";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 function SectionGuide({ step, title, description, tip }) {
   return (

@@ -8,7 +8,7 @@ export const PLATFORMS = {
     gradient: "from-blue-600 to-blue-400",
     accentColor: "blue",
     tagline: "Create highly effective Facebook posts tailored to your specific needs and audience.",
-    apiEndpoint: "https://maya-backend-service-326007673689.us-central1.run.app/api/content/facebook/fb_prime",
+    apiEndpoint: "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/content/facebook/fb_prime",
     fields: [
       { key: "postGoal", label: "Post Goal", hint: "What do you want to achieve?", apiKey: "postGoal",
         options: ["Engagement", "Awareness", "Lead Generation", "Website Traffic", "Conversions", "Brand Loyalty", "Community Building", "Product Promotion", "Event Promotion"] },
@@ -44,7 +44,7 @@ export const PLATFORMS = {
     gradient: "from-purple-600 via-pink-500 to-orange-400",
     accentColor: "pink",
     tagline: "Create highly effective Instagram posts tailored to your specific needs and audience.",
-    apiEndpoint: "https://maya-backend-service-326007673689.us-central1.run.app/api/content/instagram/insta_prime",
+    apiEndpoint: "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/content/instagram/insta_prime",
     fields: [
       { key: "ContentGoal", label: "Content Goal", hint: "What do you want to achieve?", apiKey: "contentGoal",
         options: ["Engagement", "Brand Awareness", "Follower Growth", "Website Traffic", "Community Building", "Sales/Conversions", "Educate Audience", "Entertain"] },
@@ -80,7 +80,7 @@ export const PLATFORMS = {
     gradient: "from-gray-900 via-pink-500 to-cyan-400",
     accentColor: "cyan",
     tagline: "Create viral TikTok content tailored to your specific niche and audience.",
-    apiEndpoint: "https://maya-backend-service-326007673689.us-central1.run.app/api/content/tiktok/tt_prime",
+    apiEndpoint: "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/content/tiktok/tt_prime",
     fields: [
       { key: "VideoGoal", label: "Video Goal", hint: "What's the purpose of this video?", apiKey: "videoGoal",
         options: ["Increase Followers", "Go Viral", "Drive Sales", "Educate Audience", "Build Community", "Promote Brand", "Entertainment", "Collaboration"] },
@@ -116,7 +116,7 @@ export const PLATFORMS = {
     gradient: "from-red-600 to-orange-500",
     accentColor: "red",
     tagline: "Create highly effective YouTube content tailored to your specific niche and audience.",
-    apiEndpoint: "https://maya-backend-service-326007673689.us-central1.run.app/api/content/youtube/yt_prime",
+    apiEndpoint: "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/content/youtube/yt_prime",
     fields: [
       { key: "VideoGoal", label: "Video Goal", hint: "What's the purpose of this video?", apiKey: "videoGoal",
         options: ["Grow Subscriber Base", "Increase Watch Time", "Drive Website Traffic", "Monetization", "Build Authority", "Educate Audience", "Entertain", "Product Review"] },
@@ -152,7 +152,7 @@ export const PLATFORMS = {
     gradient: "from-yellow-400 to-yellow-300",
     accentColor: "yellow",
     tagline: "Create engaging Snapchat stories tailored to your audience and brand.",
-    apiEndpoint: "https://maya-backend-service-326007673689.us-central1.run.app/api/content/snapchat/sc_prime",
+    apiEndpoint: "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/content/snapchat/sc_prime",
     fields: [
       { key: "SnapGoal", label: "Snap Goal", hint: "What's the purpose?", apiKey: "snapGoal",
         options: ["Storytelling", "Brand Awareness", "Drive Traffic", "Engagement", "Product Showcase", "Behind-the-Scenes", "Flash Sales", "Event Coverage"] },
@@ -188,7 +188,7 @@ export const PLATFORMS = {
     gradient: "from-red-500 to-red-400",
     accentColor: "red",
     tagline: "Create high-performing Pinterest pins tailored to your niche and audience.",
-    apiEndpoint: "https://maya-backend-service-326007673689.us-central1.run.app/api/content/pinterest/pin_prime",
+    apiEndpoint: "https://maya-backend-service-326007673689.asia-southeast1.run.app/api/content/pinterest/pin_prime",
     fields: [
       { key: "PinGoal", label: "Pin Goal", hint: "What's the purpose of this pin?", apiKey: "pinGoal",
         options: ["Drive Website Traffic", "Increase Saves", "Brand Awareness", "Product Sales", "Grow Followers", "Inspire & Educate", "Lead Generation", "Build Board Authority"] },

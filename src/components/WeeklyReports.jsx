@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useCreator } from "../analytics/CreatorContext";
 
-const API_BASE = "https://maya-backend-service-326007673689.us-central1.run.app";
+const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
 function AccountSelector({ connectedAccounts, selectedAccountId, setSelectedAccountId }) {
   return (

@@ -36,7 +36,7 @@ function ConnectedAccountsList() {
       if (!authState.isLoggedIn || !authState.userId) return;
       try {
         const res = await axios.get(
-          `https://maya-backend-service-326007673689.us-central1.run.app/api/phyllo/disconnected?userId=${authState.userId}`,
+          `https://maya-backend-service-326007673689.asia-southeast1.run.app/api/phyllo/disconnected?userId=${authState.userId}`,
           { headers: { Authorization: `Bearer ${authState.token}` } }
         );
         setDisconnectedAccounts(res.data || []);
@@ -50,7 +50,7 @@ function ConnectedAccountsList() {
   const handleReconnect = async (acc) => {
     setReconnecting(acc.creatorId);
     try {
-      const res = await fetch(`https://maya-backend-service-326007673689.us-central1.run.app/api/phyllo/reconnect/${acc.creatorId}`, {
+      const res = await fetch(`https://maya-backend-service-326007673689.asia-southeast1.run.app/api/phyllo/reconnect/${acc.creatorId}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${authState.token}` },
       });
@@ -78,7 +78,7 @@ function ConnectedAccountsList() {
     e.stopPropagation();
     if (!confirm(`Disconnect @${acc.username}? Your historical data will be preserved.`)) return;
     try {
-      const res = await fetch(`https://maya-backend-service-326007673689.us-central1.run.app/api/phyllo/disconnect/${acc.id}`, {
+      const res = await fetch(`https://maya-backend-service-326007673689.asia-southeast1.run.app/api/phyllo/disconnect/${acc.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${authState.token}` },
       });
@@ -99,7 +99,7 @@ function ConnectedAccountsList() {
   const handleDeleteAccount = async () => {
     if (!deleteModal || deleteConfirmInput !== "DELETE") return;
     try {
-      const res = await fetch(`https://maya-backend-service-326007673689.us-central1.run.app/api/phyllo/delete-account/${deleteModal.acc.id}`, {
+      const res = await fetch(`https://maya-backend-service-326007673689.asia-southeast1.run.app/api/phyllo/delete-account/${deleteModal.acc.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${authState.token}` },
       });
@@ -300,7 +300,7 @@ export default function UserAccountMgnt(){
         const token = sessionStorage.getItem('token'); 
         const userID = getUserIdFromToken(sessionStorage.getItem('token'));
         try {
-          const response = await axios.get("https://maya-backend-service-326007673689.us-central1.run.app/auth/getUserById/"+userID,
+          const response = await axios.get("https://maya-backend-service-326007673689.asia-southeast1.run.app/auth/getUserById/"+userID,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (response.status === 200) {
