@@ -16,8 +16,9 @@ function NeuralConstellation() {
     const ctx = canvas.getContext("2d");
     let animId;
     let particles = [];
-    const PARTICLE_COUNT = 80;
-    const CONNECTION_DIST = 180;
+    const isMobile = window.innerWidth < 768;
+    const PARTICLE_COUNT = isMobile ? 30 : 80;
+    const CONNECTION_DIST = isMobile ? 120 : 180;
     const SPEED = 0.4;
 
     const resize = () => {
@@ -35,7 +36,7 @@ function NeuralConstellation() {
         y: Math.random() * h,
         vx: (Math.random() - 0.5) * SPEED,
         vy: (Math.random() - 0.5) * SPEED,
-        r: Math.random() * 2.5 + 1,
+        r: isMobile ? Math.random() * 1.5 + 0.5 : Math.random() * 2.5 + 1,
       }));
     };
 
@@ -44,7 +45,6 @@ function NeuralConstellation() {
       const h = canvas.offsetHeight;
       ctx.clearRect(0, 0, w, h);
 
-      // Update positions
       for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
@@ -52,29 +52,27 @@ function NeuralConstellation() {
         if (p.y < 0 || p.y > h) p.vy *= -1;
       }
 
-      // Draw connections
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < CONNECTION_DIST) {
-            const opacity = (1 - dist / CONNECTION_DIST) * 0.7;
+            const opacity = (1 - dist / CONNECTION_DIST) * (isMobile ? 0.4 : 0.7);
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
             ctx.strokeStyle = `rgba(45, 212, 191, ${opacity})`;
-            ctx.lineWidth = 1;
+            ctx.lineWidth = isMobile ? 0.5 : 1;
             ctx.stroke();
           }
         }
       }
 
-      // Draw dots
       for (const p of particles) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(45, 212, 191, 0.9)";
+        ctx.fillStyle = `rgba(45, 212, 191, ${isMobile ? 0.5 : 0.9})`;
         ctx.fill();
       }
 
@@ -87,7 +85,7 @@ function NeuralConstellation() {
     return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", init); };
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 1 }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
 }
 
 // --- Scroll reveal hook ---
@@ -265,9 +263,9 @@ export default function Home() {
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white dark:from-gray-950 to-transparent z-10 pointer-events-none" />
 
           {/* Scrolling track */}
-          <div className="flex animate-marquee">
+          <div className="marquee-track">
             {[...Array(2)].map((_, dupeIdx) => (
-              <div key={dupeIdx} className="flex shrink-0 items-stretch gap-6 px-3">
+              <div key={dupeIdx} className="marquee-content">
                 {[
                   { emoji: "🔥", gradient: "from-orange-500 to-rose-500", title: "Streak Manager", desc: "Never break your posting streak again. We track it — you just keep going.", highlight: "Stay consistent" },
                   { emoji: "🎯", gradient: "from-teal-500 to-cyan-500", title: "Weekly Goal Setter", desc: "Set a target, watch the ring fill. Simple accountability that works.", highlight: "Hit your targets" },
@@ -277,19 +275,19 @@ export default function Home() {
                   { emoji: "🤖", gradient: "from-emerald-500 to-teal-500", title: "MAYA AI Assistant", desc: "An AI that actually knows YOUR account. Ask anything, get real answers.", highlight: "Your personal strategist" },
                   { emoji: "✨", gradient: "from-yellow-500 to-orange-500", title: "Content Idea Generator", desc: "Pick your platform, choose your vibe. Bright ideas generated instantly.", highlight: "Never run out of ideas" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex-shrink-0 w-[320px] bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 hover:shadow-xl transition-all group relative overflow-hidden">
+                  <div key={idx} className="flex-shrink-0 w-[200px] md:w-[320px] bg-white dark:bg-white/5 rounded-2xl p-3 md:p-6 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 hover:shadow-xl transition-all group relative overflow-hidden">
                     {/* Background accent */}
                     <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-5 rounded-full -mt-8 -mr-8 group-hover:opacity-10 transition-opacity`} />
                     
                     <div className="relative">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <span className="text-3xl">{item.emoji}</span>
+                      <div className="flex items-center space-x-2 md:space-x-3 mb-2 md:mb-4">
+                        <span className="text-2xl md:text-3xl">{item.emoji}</span>
                         <div>
-                          <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">{item.title}</h4>
-                          <p className={`text-[10px] font-semibold uppercase tracking-wide bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent`}>{item.highlight}</p>
+                          <h4 className="text-xs md:text-base font-bold text-gray-900 dark:text-gray-100">{item.title}</h4>
+                          <p className={`text-[8px] md:text-[10px] font-semibold uppercase tracking-wide bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent`}>{item.highlight}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                      <p className="text-[11px] md:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -300,16 +298,16 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ BEFORE / AFTER ═══════════════ */}
-      <section className="w-full py-28 px-6">
+      <section className="w-full py-16 md:py-28 px-6">
         <div className="max-w-[900px] mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">The difference</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Without MAYA vs With MAYA</h2>
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Without MAYA vs With MAYA</h2>
           </div>
 
-          <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6" delay={150}>
+          <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" delay={150}>
             {/* Without */}
-            <div className="relative bg-red-50/50 dark:bg-red-900/10 rounded-2xl p-8 border border-red-200/50 dark:border-red-800/30 overflow-hidden">
+            <div className="relative bg-red-50/50 dark:bg-red-900/10 rounded-2xl p-5 md:p-8 border border-red-200/50 dark:border-red-800/30 overflow-hidden">
               <div className="absolute top-4 right-4 w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-red-500 text-sm">close</span>
               </div>
@@ -331,7 +329,7 @@ export default function Home() {
             </div>
 
             {/* With */}
-            <div className="relative bg-teal-50/50 dark:bg-teal-900/10 rounded-2xl p-8 border border-teal-200/50 dark:border-teal-800/30 overflow-hidden">
+            <div className="relative bg-teal-50/50 dark:bg-teal-900/10 rounded-2xl p-5 md:p-8 border border-teal-200/50 dark:border-teal-800/30 overflow-hidden">
               <div className="absolute top-4 right-4 w-8 h-8 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-teal-500 text-sm">check</span>
               </div>
@@ -356,17 +354,17 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ BENTO GRID FEATURES ═══════════════ */}
-      <section id="features" className="w-full py-28 px-6 bg-gray-50 dark:bg-gray-900/50">
+      <section id="features" className="w-full py-16 md:py-28 px-6 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-[1000px] mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">Capabilities</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Everything you need. One workspace.</h2>
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Everything you need. One workspace.</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">Stop switching between apps. Plan, create, schedule, analyze — all connected to your real accounts.</p>
           </div>
 
           <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[850px] mx-auto" delay={100}>
             {/* Plan Page — Streak, Goal, Plan, Suggestions */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col h-[420px] overflow-hidden">
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col md:h-[420px] overflow-hidden">
               <div className="flex items-start justify-between mb-5">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
                   <span className="material-symbols-outlined text-white text-xl">dashboard</span>
@@ -405,7 +403,7 @@ export default function Home() {
             </div>
 
             {/* Calendar */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col h-[420px] overflow-hidden">
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col md:h-[420px] overflow-hidden">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-5">
                 <span className="material-symbols-outlined text-white text-xl">calendar_month</span>
               </div>
@@ -422,7 +420,7 @@ export default function Home() {
             </div>
 
             {/* AI Chat */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col h-[420px] overflow-hidden">
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col md:h-[420px] overflow-hidden">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-5">
                 <span className="material-symbols-outlined text-white text-xl">smart_toy</span>
               </div>
@@ -439,7 +437,7 @@ export default function Home() {
             </div>
 
             {/* Analytics */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col h-[420px] overflow-hidden">
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/30 transition-all group card-tilt flex flex-col md:h-[420px] overflow-hidden">
               <div className="flex items-start justify-between mb-5">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
                   <span className="material-symbols-outlined text-white text-xl">insights</span>
@@ -462,11 +460,11 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-      <section className="w-full py-28 px-6">
+      <section className="w-full py-16 md:py-28 px-6">
         <div className="max-w-[900px] mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-3">How it works</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Connect once. Plan every week.</h2>
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Connect once. Plan every week.</h2>
           </div>
 
           <StaggerChildren className="grid grid-cols-1 md:grid-cols-4 gap-8" delay={120}>
@@ -520,7 +518,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ EARLY ACCESS ═══════════════ */}
-      <section className="w-full py-28 px-6">
+      <section className="w-full py-16 md:py-28 px-6">
         <div className="max-w-[800px] mx-auto">
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-white/5 dark:to-white/[0.02] rounded-3xl p-10 md:p-14 border border-gray-700 dark:border-white/10 relative overflow-hidden text-center">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-teal-500/10 rounded-full blur-[100px] -mt-48" />
@@ -570,7 +568,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ DEMO CTA ═══════════════ */}
-      <section className="w-full py-28 px-6 bg-gray-50 dark:bg-gray-900/50">
+      <section className="w-full py-16 md:py-28 px-6 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-[700px] mx-auto">
           <div className="bg-gray-900 dark:bg-white/5 rounded-3xl p-12 border border-gray-800 dark:border-white/10 text-center relative overflow-hidden backdrop-blur-sm">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-teal-500/10 rounded-full blur-[80px] -mt-32" />

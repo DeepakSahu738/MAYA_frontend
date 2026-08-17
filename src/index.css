@@ -451,16 +451,35 @@ html.dark .card-tilt:hover {
 }
 
 
-/* Marquee — infinite horizontal scroll */
-@keyframes marquee {
+/* Marquee — infinite horizontal scroll (seamless) */
+@keyframes marqueeScroll {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  100% { transform: translateX(-100%); }
 }
 
-.animate-marquee {
-  animation: marquee 35s linear infinite;
+.marquee-track {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
 }
 
-.animate-marquee:hover {
+.marquee-content {
+  display: flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  gap: 12px;
+  padding: 0 6px;
+  animation: marqueeScroll 15s linear infinite;
+}
+
+@media (min-width: 768px) {
+  .marquee-content {
+    gap: 24px;
+    padding: 0 12px;
+    animation: marqueeScroll 40s linear infinite;
+  }
+}
+
+.marquee-track:hover .marquee-content {
   animation-play-state: paused;
 }
