@@ -145,9 +145,12 @@ const Header = () => {
                 <button onClick={() => scrollTo("about")} className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">How It Works</button>
                 <a href="/demo" target="_blank" className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">Demo</a>
                 <button onClick={() => scrollTo("pricing")} className="block w-full text-left px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">Pricing</button>
-                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3 space-y-2">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg">Login</Link>
-                  <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center px-4 py-2.5 text-sm bg-teal-600 text-white rounded-lg font-medium">Sign Up</Link>
+                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3 flex items-center justify-between">
+                  <DarkModeToggle />
+                  <div className="flex items-center space-x-2">
+                    <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg">Login</Link>
+                    <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg font-medium">Sign Up</Link>
+                  </div>
                 </div>
               </>
             )}
