@@ -283,7 +283,7 @@ function PlatformsSummary({ connectedAccounts }) {
 
 // --- Main Dashboard ---
 function DashboardContent() {
-  const { selectedCreator, authState, connectedAccounts, syncingCreatorId, dataFreshness } = useCreator();
+  const { selectedCreator, authState, connectedAccounts, syncingCreatorId, dataFreshness, setDataFreshness } = useCreator();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -306,13 +306,33 @@ function DashboardContent() {
         setLoading(false);
       }
     };
+    // Also fetch sync status to get dataFreshness for this account
+    const fetchFreshness = async () => {
+      if (selectedCreator.isDemo) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/phyllo/sync-status/${selectedCreator.id}`, {
+          headers: { Authorization: `Bearer ${authState.token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const status = data.syncStatus || data.status;
+          if (data.dataFreshness) {
+            setDataFreshness(data.dataFreshness);
+          } else if (status === "COMPLETED" || status === "READY") {
+            setDataFreshness("RECENT");
+          }
+        }
+      } catch {}
+    };
     fetchDashboard();
+    fetchFreshness();
   }, [selectedCreator]);
 
   // Auto-refresh for syncing
   useEffect(() => {
     if (!dashboardData || selectedCreator?.isDemo) return;
     if (dashboardData.healthScore?.score) return;
+    if (dataFreshness === "STALE" || dataFreshness === "HISTORIC") return; // Don't poll if freshness is already known
     const poll = setInterval(async () => {
       try {
         const res = await axios.get(`${API_BASE}/api/analytics/dashboard/${selectedCreator.id}`, getAxiosConfig(selectedCreator));
@@ -322,7 +342,7 @@ function DashboardContent() {
     }, 10000);
     const timeout = setTimeout(() => clearInterval(poll), 120000);
     return () => { clearInterval(poll); clearTimeout(timeout); };
-  }, [dashboardData, selectedCreator]);
+  }, [dashboardData, selectedCreator, dataFreshness]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pt-16">
@@ -362,7 +382,7 @@ function DashboardContent() {
         {loading && <DashboardSkeleton />}
 
         {/* Syncing */}
-        {!loading && dashboardData && !dashboardData.healthScore?.score && !selectedCreator?.isDemo && (
+        {!loading && dashboardData && !dashboardData.healthScore?.score && !selectedCreator?.isDemo && dataFreshness !== "STALE" && dataFreshness !== "HISTORIC" && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 mb-4 relative">
               <div className="w-16 h-16 border-4 border-teal-200 dark:border-teal-800 rounded-full" />

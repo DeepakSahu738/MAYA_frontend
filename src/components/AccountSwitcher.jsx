@@ -1,7 +1,7 @@
 import React from "react";
 import { useCreator } from "../analytics/CreatorContext";
 import { Link } from "react-router-dom";
-import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat } from "react-icons/fa";
+import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat, FaLinkedin } from "react-icons/fa";
 
 const PLATFORM_STYLES = {
   INSTAGRAM: { bg: "bg-gradient-to-br from-purple-500 to-pink-500" },
@@ -10,6 +10,10 @@ const PLATFORM_STYLES = {
   YOUTUBE: { bg: "bg-red-600" },
   PINTEREST: { bg: "bg-red-500" },
   SNAPCHAT: { bg: "bg-yellow-400" },
+  LINKEDIN: { bg: "bg-blue-700" },
+  X: { bg: "bg-gray-800 dark:bg-gray-600" },
+  TWITCH: { bg: "bg-purple-600" },
+  SPOTIFY: { bg: "bg-green-500" },
 };
 
 function PlatformSwitcherIcon({ platform }) {
@@ -20,7 +24,8 @@ function PlatformSwitcherIcon({ platform }) {
     case "TIKTOK": return <FaTiktok className="text-white text-xs" />;
     case "YOUTUBE": return <FaYoutube className="text-white text-xs" />;
     case "SNAPCHAT": return <FaSnapchat className="text-white text-xs" />;
-    default: return <span className="text-white text-[10px] font-bold">?</span>;
+    case "LINKEDIN": return <FaLinkedin className="text-white text-xs" />;
+    default: return <span className="text-white text-[10px] font-bold">{p ? p[0] : "?"}</span>;
   }
 }
 

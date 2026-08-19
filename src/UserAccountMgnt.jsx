@@ -21,7 +21,13 @@ function ConnectedAccountsList() {
       case "FACEBOOK": return { bg: "bg-blue-600", label: "FB" };
       case "TIKTOK": return { bg: "bg-black", label: "TT" };
       case "YOUTUBE": return { bg: "bg-red-600", label: "YT" };
-      default: return { bg: "bg-gray-500", label: "??" };
+      case "LINKEDIN": return { bg: "bg-blue-700", label: "LI" };
+      case "SNAPCHAT": return { bg: "bg-yellow-400", label: "SC" };
+      case "X": return { bg: "bg-gray-800", label: "X" };
+      case "TWITCH": return { bg: "bg-purple-600", label: "TW" };
+      case "SPOTIFY": return { bg: "bg-green-500", label: "SP" };
+      case "SUBSTACK": return { bg: "bg-orange-500", label: "SS" };
+      default: return { bg: "bg-gray-500", label: platform ? platform[0].toUpperCase() : "?" };
     }
   };
 

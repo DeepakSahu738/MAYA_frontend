@@ -166,7 +166,7 @@ export function CreatorProvider({ children }) {
         connectedAccounts,
         allCreators,
         selectedCreator,
-        setSelectedCreator,
+        setSelectedCreator: (creator) => { setSelectedCreator(creator); setDataFreshness(null); },
         loading,
         authState,
         refreshAuth,

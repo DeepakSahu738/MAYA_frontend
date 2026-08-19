@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useCreator } from "../analytics/CreatorContext";
 import { getAxiosConfig } from "../analytics/apiHelper";
 import { getRoleFromToken } from "../tokenDecoder/detokenizer";
-import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat } from "react-icons/fa";
+import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat, FaLinkedin } from "react-icons/fa";
 
 const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
@@ -17,6 +17,7 @@ function PlatformIcon({ platform, size = "text-base" }) {
     case "TIKTOK": return <FaTiktok className={`${size} text-gray-800 dark:text-gray-200`} />;
     case "YOUTUBE": return <FaYoutube className={`${size} text-red-500`} />;
     case "SNAPCHAT": return <FaSnapchat className={`${size} text-yellow-400`} />;
+    case "LINKEDIN": return <FaLinkedin className={`${size} text-blue-700`} />;
     default: return <span className={`material-symbols-outlined ${size} text-gray-400`}>public</span>;
   }
 }
@@ -549,6 +550,10 @@ const PLATFORM_ACCENT = {
   TIKTOK: "border-l-cyan-500",
   YOUTUBE: "border-l-red-500",
   SNAPCHAT: "border-l-yellow-400",
+  LINKEDIN: "border-l-blue-700",
+  X: "border-l-gray-600",
+  TWITCH: "border-l-purple-500",
+  SPOTIFY: "border-l-green-500",
 };
 
 function TodaysFocus({ scheduledPosts, plan, selectedCreator }) {
