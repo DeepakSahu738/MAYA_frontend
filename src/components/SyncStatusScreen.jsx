@@ -6,7 +6,7 @@ const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.
 
 export default function SyncStatusScreen({ creatorId, platform, username, onComplete }) {
   const navigate = useNavigate();
-  const { authState, setDataFreshness } = useCreator();
+  const { authState, setDataFreshness: setContextDataFreshness } = useCreator();
   const [syncStatus, setSyncStatus] = useState("SYNCING");
   const [dataFreshness, setDataFreshness] = useState(null);
   const [syncError, setSyncError] = useState(null);
@@ -47,7 +47,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
           if (status === "COMPLETED" || status === "READY") {
             clearInterval(poll);
             setSyncStatus("COMPLETED");
-            if (data.dataFreshness) setDataFreshness(data.dataFreshness);
+            if (data.dataFreshness) setContextDataFreshness(data.dataFreshness);
           } else if (status === "FAILED") {
             clearInterval(poll);
           }
