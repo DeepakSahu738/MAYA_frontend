@@ -283,7 +283,7 @@ function PlatformsSummary({ connectedAccounts }) {
 
 // --- Main Dashboard ---
 function DashboardContent() {
-  const { selectedCreator, authState, connectedAccounts, syncingCreatorId } = useCreator();
+  const { selectedCreator, authState, connectedAccounts, syncingCreatorId, dataFreshness } = useCreator();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -337,6 +337,26 @@ function DashboardContent() {
               : "Recent publishing activity and operational insights across your connected accounts."}
           </p>
         </div>
+
+        {/* Data Freshness Banner */}
+        {dataFreshness === "HISTORIC" && !selectedCreator?.isDemo && (
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl flex items-start space-x-3">
+            <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-lg mt-0.5">info</span>
+            <div>
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Historic data only</p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">These metrics are based on older posts — no recent activity found. Post on your platform and your analytics will refresh with the next sync.</p>
+            </div>
+          </div>
+        )}
+        {dataFreshness === "STALE" && !selectedCreator?.isDemo && (
+          <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl flex items-start space-x-3">
+            <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-lg mt-0.5">warning</span>
+            <div>
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-300">No post data available</p>
+              <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5">Start posting on your connected platform and check back. Data syncs automatically every night at 3 AM.</p>
+            </div>
+          </div>
+        )}
 
         {/* Loading */}
         {loading && <DashboardSkeleton />}

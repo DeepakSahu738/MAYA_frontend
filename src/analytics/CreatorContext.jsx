@@ -33,6 +33,7 @@ export function CreatorProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [authState, setAuthState] = useState(getAuthState);
   const [syncingCreatorId, setSyncingCreatorId] = useState(null);
+  const [dataFreshness, setDataFreshness] = useState(null);
 
   // Refresh auth state (call after login/logout)
   const refreshAuth = useCallback(() => {
@@ -172,6 +173,8 @@ export function CreatorProvider({ children }) {
         fetchConnectedAccounts,
         addConnectedAccount,
         syncingCreatorId,
+        dataFreshness,
+        setDataFreshness,
       }}
     >
       {children}

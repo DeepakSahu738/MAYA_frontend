@@ -6,9 +6,11 @@ const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.
 
 export default function SyncStatusScreen({ creatorId, platform, username, onComplete }) {
   const navigate = useNavigate();
-  const { authState } = useCreator();
-  const [status, setStatus] = useState("SYNCING");
-  const [message, setMessage] = useState("Connecting to your account...");
+  const { authState, setDataFreshness } = useCreator();
+  const [syncStatus, setSyncStatus] = useState("SYNCING");
+  const [dataFreshness, setDataFreshness] = useState(null);
+  const [syncError, setSyncError] = useState(null);
+  const [latestPostDate, setLatestPostDate] = useState(null);
   const [postsCount, setPostsCount] = useState(0);
   const [commentsCount, setCommentsCount] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
@@ -18,7 +20,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
     if (!creatorId) return;
 
     let attempts = 0;
-    const maxAttempts = 18; // 90 seconds at 5s intervals
+    const maxAttempts = 24; // 120 seconds at 5s intervals
 
     const poll = setInterval(async () => {
       attempts++;
@@ -31,12 +33,22 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
 
         if (res.ok) {
           const data = await res.json();
-          setStatus(data.status);
-          setMessage(data.message || "Syncing your data...");
+
+          // Handle new response fields
+          const status = data.syncStatus || data.status;
+          setSyncStatus(status);
+          setDataFreshness(data.dataFreshness || null);
+          setSyncError(data.syncError || null);
+          setLatestPostDate(data.latestPostDate || null);
           setPostsCount(data.postsCount || 0);
           setCommentsCount(data.commentsCount || 0);
 
-          if (data.status === "READY") {
+          // Stop polling on completion or failure
+          if (status === "COMPLETED" || status === "READY") {
+            clearInterval(poll);
+            setSyncStatus("COMPLETED");
+            if (data.dataFreshness) setDataFreshness(data.dataFreshness);
+          } else if (status === "FAILED") {
             clearInterval(poll);
           }
         }
@@ -44,7 +56,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
         console.error("Sync status poll error:", err);
       }
 
-      if (attempts >= maxAttempts && status !== "READY") {
+      if (attempts >= maxAttempts) {
         clearInterval(poll);
         setTimedOut(true);
       }
@@ -54,22 +66,26 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
   }, [creatorId, authState.token]);
 
   const handleViewDashboard = () => {
-    if (onComplete) onComplete();
+    if (onComplete) onComplete(dataFreshness);
     navigate("/plan");
   };
 
+  const isSyncing = syncStatus === "SYNCING";
+  const isCompleted = syncStatus === "COMPLETED";
+  const isFailed = syncStatus === "FAILED";
+
   const steps = [
     { label: `Connected to ${platform || "Instagram"}`, done: true },
-    { label: `${postsCount} posts fetched`, done: postsCount > 0 },
-    { label: `Fetching comments${commentsCount > 0 ? ` (${commentsCount})` : ""}...`, done: commentsCount > 0 && status === "READY" },
-    { label: "Building your analytics", done: status === "READY" },
+    { label: `${postsCount > 0 ? postsCount + " posts fetched" : "Fetching posts..."}`, done: postsCount > 0 },
+    { label: `${commentsCount > 0 ? commentsCount + " comments analyzed" : "Analyzing comments..."}`, done: commentsCount > 0 && isCompleted },
+    { label: "Building your analytics", done: isCompleted },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm px-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-200 dark:border-gray-700">
 
-        {status !== "READY" && !timedOut && (
+        {isSyncing && !timedOut && (
           <>
             {/* Syncing State */}
             <div className="text-center mb-6">
@@ -78,7 +94,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
                 <div className="absolute inset-0 w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Setting up your account...</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{message}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Syncing your data from {platform || "Instagram"}</p>
             </div>
 
             {/* Steps */}
@@ -99,7 +115,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
                     </span>
                   )}
                   <span className={`text-sm ${step.done ? "text-gray-800 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`}>
-                    {step.done ? "✓ " : ""}{step.label}
+                    {step.label}
                   </span>
                 </div>
               ))}
@@ -112,7 +128,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
           </>
         )}
 
-        {status === "READY" && (
+        {isCompleted && (
           <>
             {/* Success State */}
             <div className="text-center mb-6">
@@ -147,6 +163,29 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
               </div>
             </div>
 
+            {/* Data freshness banner */}
+            {dataFreshness === "HISTORIC" && (
+              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-base mt-0.5">info</span>
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400 leading-relaxed">
+                    Metrics are based on historic data — no recent posts found. Post on your platform and your analytics will update with the next sync.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {dataFreshness === "STALE" && (
+              <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-base mt-0.5">warning</span>
+                  <p className="text-xs text-orange-700 dark:text-orange-400 leading-relaxed">
+                    No post data available yet. Start posting on your platform and check back — data syncs automatically every night.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleViewDashboard}
               className="w-full py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition-colors flex items-center justify-center space-x-2"
@@ -157,7 +196,43 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
           </>
         )}
 
-        {timedOut && (
+        {isFailed && (
+          <>
+            {/* Failed State */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-3xl">error</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Sync failed</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {syncError || "Something went wrong while syncing your account. Please try again."}
+              </p>
+            </div>
+
+            {postsCount > 0 && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">
+                {postsCount} posts were loaded before the error occurred.
+              </p>
+            )}
+
+            <div className="space-y-2">
+              <button
+                onClick={handleViewDashboard}
+                className="w-full py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition-colors"
+              >
+                Go to Dashboard Anyway
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </>
+        )}
+
+        {timedOut && !isCompleted && !isFailed && (
           <>
             {/* Timeout State */}
             <div className="text-center mb-6">
