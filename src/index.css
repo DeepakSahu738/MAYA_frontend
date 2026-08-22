@@ -483,3 +483,48 @@ html.dark .card-tilt:hover {
 .marquee-track:hover .marquee-content {
   animation-play-state: paused;
 }
+
+
+/* GFM Tables in chat */
+.chat-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+}
+
+.chat-markdown th {
+  background-color: #f3f4f6;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+html.dark .chat-markdown th {
+  background-color: #374151;
+  border-bottom-color: #4b5563;
+}
+
+.chat-markdown td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+html.dark .chat-markdown td {
+  border-bottom-color: #4b5563;
+}
+
+.chat-markdown tr:last-child td {
+  border-bottom: none;
+}
+
+/* GFM strikethrough + task lists */
+.chat-markdown del {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.chat-markdown input[type="checkbox"] {
+  margin-right: 0.4rem;
+}

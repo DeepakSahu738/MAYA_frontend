@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import axios from "axios";
 import { useCreator } from "./CreatorContext";
 import { getAuthHeaders } from "./apiHelper";
@@ -89,7 +90,8 @@ function ChatContent() {
           const lines = part.split("\n");
           for (const line of lines) {
             if (line.startsWith("data:")) {
-              const token = line.substring(5);
+              let token = line.substring(5);
+              if (token === "") token = "\n";
               if (token === "[DONE]") {
                 setIsStreaming(false);
                 return;
@@ -198,7 +200,7 @@ function ChatContent() {
                 >
                   {msg.role === "assistant" ? (
                     <div className="chat-markdown prose prose-sm dark:prose-invert max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-gray-800 dark:prose-headings:text-gray-100 prose-strong:text-teal-700 dark:prose-strong:text-teal-400 prose-a:text-teal-600 dark:prose-a:text-teal-400">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                       {isStreaming && idx === messages.length - 1 && (
                         <span className="inline-block w-1.5 h-4 bg-teal-500 animate-pulse ml-0.5 rounded-sm align-middle" />
                       )}

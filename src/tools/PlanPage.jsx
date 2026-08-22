@@ -682,8 +682,8 @@ function WeeklyGoal({ thisWeekCount, selectedCreator }) {
   const circumference = 2 * Math.PI * 28; // radius = 28
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  // No goal set yet — show setup prompt
-  if (!goal?.exists && !editing) {
+  // No goal set yet — show setup prompt (treat target 0 as no goal)
+  if ((!goal?.exists || goal?.target === 0) && !editing) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 mb-4">
         <div className="flex items-center justify-between">
@@ -773,13 +773,32 @@ function WeeklyGoal({ thisWeekCount, selectedCreator }) {
           </div>
         </div>
 
-        <button
-          onClick={() => { setInputTarget(target); setEditing(true); }}
-          className="text-xs text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
-          title="Edit goal"
-        >
-          <span className="material-symbols-outlined text-base">edit</span>
-        </button>
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={() => { setInputTarget(target); setEditing(true); }}
+            className="text-xs text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+            title="Edit goal"
+          >
+            <span className="material-symbols-outlined text-base">edit</span>
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm("Clear your weekly goal?")) return;
+              try {
+                await axios.delete(
+                  `${API_BASE}/api/goals/reset?creatorId=${selectedCreator.id}`,
+                  { headers: { Authorization: `Bearer ${authState.token}` } }
+                );
+                setGoal({ target: 0, weekStart: goal.weekStart, exists: false });
+                toast.success("Goal cleared");
+              } catch { toast.error("Failed to clear goal"); }
+            }}
+            className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+            title="Clear goal"
+          >
+            <span className="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
       </div>
     </div>
   );

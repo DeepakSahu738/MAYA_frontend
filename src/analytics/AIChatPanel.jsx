@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useCreator } from "./CreatorContext";
 import { getAuthHeaders } from "./apiHelper";
 
@@ -67,7 +68,9 @@ export default function AIChatPanel({ isOpen, onClose }) {
           const lines = part.split("\n");
           for (const line of lines) {
             if (line.startsWith("data:")) {
-              const token = line.substring(5);
+              let token = line.substring(5);
+              // Empty data line means the AI sent a newline character
+              if (token === "") token = "\n";
               if (token === "[DONE]") {
                 setIsStreaming(false);
                 return;
@@ -212,7 +215,7 @@ export default function AIChatPanel({ isOpen, onClose }) {
             >
               {msg.role === "assistant" ? (
                 <div className="chat-markdown prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-1.5 prose-headings:text-gray-800 dark:prose-headings:text-gray-100 prose-strong:text-teal-700 dark:prose-strong:text-teal-400 prose-a:text-teal-600 dark:prose-a:text-teal-400">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                   {isStreaming && idx === messages.length - 1 && (
                     <span className="inline-block w-1.5 h-4 bg-teal-500 animate-pulse ml-0.5 rounded-sm align-middle" />
                   )}
