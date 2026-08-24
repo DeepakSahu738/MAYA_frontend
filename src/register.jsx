@@ -85,9 +85,9 @@ export default function Register() {
     }
   };
 
-  // Step 2: Verify OTP
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
+  // Step 2: Verify OTP — accepts code directly or reads from state
+  const submitOtp = async (codeOverride) => {
+    const code = codeOverride || otp.join("");
     if (code.length !== 6) { setError("Please enter the full 6-digit code"); return; }
 
     setLoading(true);
@@ -124,6 +124,8 @@ export default function Register() {
     }
   };
 
+  const handleVerifyOtp = () => submitOtp();
+
   // Resend OTP
   const handleResend = async () => {
     if (resendCooldown > 0) return;
@@ -140,10 +142,10 @@ export default function Register() {
     setOtp(newOtp);
     setError("");
     if (value && idx < 5) otpRefs.current[idx + 1]?.focus();
-    // Auto-submit on last digit
+    // Auto-submit on last digit — pass code directly (don't rely on stale state)
     if (value && idx === 5) {
       const code = newOtp.join("");
-      if (code.length === 6) setTimeout(() => handleVerifyOtp(), 100);
+      if (code.length === 6) setTimeout(() => submitOtp(code), 150);
     }
   };
 
@@ -151,15 +153,29 @@ export default function Register() {
     if (e.key === "Backspace" && !otp[idx] && idx > 0) {
       otpRefs.current[idx - 1]?.focus();
     }
+    if (e.key === "ArrowLeft" && idx > 0) {
+      e.preventDefault();
+      otpRefs.current[idx - 1]?.focus();
+    }
+    if (e.key === "ArrowRight" && idx < 5) {
+      e.preventDefault();
+      otpRefs.current[idx + 1]?.focus();
+    }
   };
 
   const handleOtpPaste = (e) => {
     e.preventDefault();
     const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (paste.length === 6) {
-      setOtp(paste.split(""));
-      otpRefs.current[5]?.focus();
-      setTimeout(() => handleVerifyOtp(), 100);
+    if (paste.length > 0) {
+      const newOtp = ["", "", "", "", "", ""];
+      paste.split("").forEach((ch, i) => { newOtp[i] = ch; });
+      setOtp(newOtp);
+      // Focus the next empty box or last filled
+      const focusIdx = Math.min(paste.length, 5);
+      otpRefs.current[focusIdx]?.focus();
+      if (paste.length === 6) {
+        setTimeout(() => submitOtp(paste), 150);
+      }
     }
   };
 
