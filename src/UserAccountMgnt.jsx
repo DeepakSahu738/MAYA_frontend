@@ -291,6 +291,9 @@ export default function UserAccountMgnt(){
     const [error, setError] = React.useState(null);
     const [userData, setUserData] = React.useState(null);
     const [refreshReports, setRefreshReports] = useState(0);
+    const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+    const [deleteAccountInput, setDeleteAccountInput] = useState("");
+    const [deletingAccount, setDeletingAccount] = useState(false);
     const navigate = useNavigate();
     const { authState, refreshAuth, setSelectedCreator } = useCreator();
 
@@ -301,6 +304,39 @@ export default function UserAccountMgnt(){
         toast.success("You have been logged out Successfully.");
         navigate('/login');
     }
+
+    const handleDeleteAccount = async () => {
+        if (deleteAccountInput !== "DELETE MY ACCOUNT") return;
+        setDeletingAccount(true);
+        try {
+            const userId = getUserIdFromToken(sessionStorage.getItem('token'));
+            const res = await fetch(`https://maya-backend-service-326007673689.asia-southeast1.run.app/auth/deleteUserById/${userId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${authState.token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                sessionStorage.removeItem("token");
+                setSelectedCreator(null);
+                refreshAuth();
+                toast.success(`Account deleted. ${data.deletedData?.posts || 0} posts, ${data.deletedData?.comments || 0} comments removed.`);
+                navigate("/");
+            } else if (res.status === 403) {
+                toast.error("Permission denied. You can only delete your own account.");
+            } else {
+                toast.error("Failed to delete account. Please try again.");
+            }
+        } catch {
+            toast.error("Network error. Please try again.");
+        } finally {
+            setDeletingAccount(false);
+            setShowDeleteAccountModal(false);
+            setDeleteAccountInput("");
+        }
+    };
 
     const handleUserData = async () => {
         const token = sessionStorage.getItem('token'); 
@@ -581,7 +617,10 @@ export default function UserAccountMgnt(){
                                                 <p className="text-sm font-medium text-red-700 dark:text-red-400">Delete Account</p>
                                                 <p className="text-xs text-red-500 dark:text-red-400/70">Permanently remove your account and all data</p>
                                             </div>
-                                            <button className="text-xs px-3 py-1.5 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+                                            <button
+                                                onClick={() => setShowDeleteAccountModal(true)}
+                                                className="text-xs px-3 py-1.5 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                                            >
                                                 Delete
                                             </button>
                                         </div>
@@ -593,6 +632,56 @@ export default function UserAccountMgnt(){
                     </div>
                 </main>
             </div>
+
+            {/* Delete Account Modal */}
+            {showDeleteAccountModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4" onClick={() => { setShowDeleteAccountModal(false); setDeleteAccountInput(""); }}>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center space-x-3 mb-4">
+                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">person_remove</span>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Delete Your Account</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{userData?.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800 mb-4">
+                            <p className="text-xs text-red-700 dark:text-red-400 leading-relaxed">
+                                This will <strong>permanently delete</strong> your MAYA account including all connected social accounts, posts, comments, analytics, scheduled content, weekly reports, and goals. <strong>This action cannot be undone.</strong>
+                            </p>
+                        </div>
+
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                            Type <strong className="text-red-600 dark:text-red-400">DELETE MY ACCOUNT</strong> to confirm:
+                        </p>
+                        <input
+                            type="text"
+                            value={deleteAccountInput}
+                            onChange={(e) => setDeleteAccountInput(e.target.value)}
+                            placeholder="Type DELETE MY ACCOUNT"
+                            className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+                        />
+
+                        <div className="flex items-center justify-end space-x-3">
+                            <button
+                                onClick={() => { setShowDeleteAccountModal(false); setDeleteAccountInput(""); }}
+                                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteAccountInput !== "DELETE MY ACCOUNT" || deletingAccount}
+                                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-medium"
+                            >
+                                {deletingAccount ? "Deleting..." : "Permanently Delete Account"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
