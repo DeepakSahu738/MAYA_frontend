@@ -368,7 +368,7 @@ function DashboardContent() {
         {loading && <DashboardSkeleton />}
 
         {/* Main Content */}
-        {!loading && dashboardData && (dashboardData.healthScore?.score || selectedCreator?.isDemo) && (
+        {!loading && dashboardData && (
           <>
             {/* Section 1: Operational Insight Cards */}
             <InsightCards dashboardData={dashboardData} connectedAccounts={connectedAccounts} />
