@@ -364,16 +364,16 @@ function DashboardContent() {
             <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-lg mt-0.5">info</span>
             <div>
               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Historic data only</p>
-              <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">These metrics are based on older posts — no recent activity found. Post on your platform and your analytics will refresh with the next sync.</p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">These analytics are based on historic data. No recent posts found in the last 90 days.</p>
             </div>
           </div>
         )}
         {dataFreshness === "STALE" && !selectedCreator?.isDemo && (
-          <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl flex items-start space-x-3">
-            <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-lg mt-0.5">warning</span>
+          <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl flex items-start space-x-3">
+            <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-lg mt-0.5">info</span>
             <div>
-              <p className="text-sm font-medium text-orange-800 dark:text-orange-300">No post data available</p>
-              <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5">Start posting on your connected platform and check back. Data syncs automatically every night at 3 AM.</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">No post data available</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Connect your account or wait for sync to complete. Data syncs automatically every night.</p>
             </div>
           </div>
         )}

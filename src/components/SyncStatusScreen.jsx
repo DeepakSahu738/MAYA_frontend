@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreator } from "../analytics/CreatorContext";
 
@@ -10,67 +10,90 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
   const [syncStatus, setSyncStatus] = useState("SYNCING");
   const [dataFreshness, setDataFreshness] = useState(null);
   const [syncError, setSyncError] = useState(null);
-  const [latestPostDate, setLatestPostDate] = useState(null);
+  const [message, setMessage] = useState("");
   const [postsCount, setPostsCount] = useState(0);
   const [commentsCount, setCommentsCount] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [isPolling, setIsPolling] = useState(true);
+  const intervalRef = useRef(null);
 
-  useEffect(() => {
-    if (!creatorId) return;
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/phyllo/sync-status/${creatorId}`, {
+        headers: { Authorization: `Bearer ${authState.token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const status = data.syncStatus || data.status;
+        setSyncStatus(status);
+        setDataFreshness(data.dataFreshness || null);
+        setSyncError(data.syncError || null);
+        setMessage(data.message || "");
+        setPostsCount(data.postsCount || 0);
+        setCommentsCount(data.commentsCount || 0);
 
-    let attempts = 0;
-    const maxAttempts = 24; // 120 seconds at 5s intervals
-
-    const poll = setInterval(async () => {
-      attempts++;
-      setElapsed(attempts * 5);
-
-      try {
-        const res = await fetch(`${API_BASE}/api/phyllo/sync-status/${creatorId}`, {
-          headers: { Authorization: `Bearer ${authState.token}` },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-
-          // Handle new response fields
-          const status = data.syncStatus || data.status;
-          setSyncStatus(status);
-          setDataFreshness(data.dataFreshness || null);
-          setSyncError(data.syncError || null);
-          setLatestPostDate(data.latestPostDate || null);
-          setPostsCount(data.postsCount || 0);
-          setCommentsCount(data.commentsCount || 0);
-
-          // Stop polling on completion or failure
-          if (status === "COMPLETED" || status === "READY") {
-            clearInterval(poll);
-            setSyncStatus("COMPLETED");
-            if (data.dataFreshness) setContextDataFreshness(data.dataFreshness);
-          } else if (status === "FAILED") {
-            clearInterval(poll);
-          }
+        // Stop polling conditions
+        if (status === "COMPLETED" || status === "READY") {
+          setSyncStatus("COMPLETED");
+          setIsPolling(false);
+          if (data.dataFreshness) setContextDataFreshness(data.dataFreshness);
+        } else if (status === "FAILED") {
+          setIsPolling(false);
+        } else if (status === "SYNCING_WAITING") {
+          setIsPolling(false);
         }
-      } catch (err) {
-        console.error("Sync status poll error:", err);
       }
+    } catch (err) {
+      console.error("Sync status poll error:", err);
+    }
+  };
 
-      if (attempts >= maxAttempts) {
-        clearInterval(poll);
-        setTimedOut(true);
-      }
+  // Polling loop
+  useEffect(() => {
+    if (!creatorId || !isPolling) return;
+    fetchStatus(); // immediate first call
+    intervalRef.current = setInterval(() => {
+      setElapsed((e) => e + 5);
+      fetchStatus();
     }, 5000);
 
-    return () => clearInterval(poll);
-  }, [creatorId, authState.token]);
+    // Timeout after 2 minutes of polling (only for SYNCING state)
+    const timeout = setTimeout(() => {
+      if (isPolling) {
+        setIsPolling(false);
+        setTimedOut(true);
+      }
+    }, 120000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      clearTimeout(timeout);
+    };
+  }, [creatorId, isPolling]);
+
+  // Stop interval when polling stops
+  useEffect(() => {
+    if (!isPolling && intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, [isPolling]);
 
   const handleViewDashboard = () => {
     if (onComplete) onComplete(dataFreshness);
     navigate("/plan");
   };
 
-  const isSyncing = syncStatus === "SYNCING";
+  // Manual check status (for SYNCING_WAITING state)
+  const handleCheckStatus = async () => {
+    await fetchStatus();
+    // If completed after manual check, navigate
+    // (syncStatus will update via state, UI will react)
+  };
+
+  const isSyncing = syncStatus === "SYNCING" || syncStatus === "IDLE";
+  const isWaiting = syncStatus === "SYNCING_WAITING";
   const isCompleted = syncStatus === "COMPLETED";
   const isFailed = syncStatus === "FAILED";
 
@@ -85,19 +108,18 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm px-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-200 dark:border-gray-700">
 
+        {/* SYNCING state */}
         {isSyncing && !timedOut && (
           <>
-            {/* Syncing State */}
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 relative">
                 <div className="w-16 h-16 border-4 border-teal-200 dark:border-teal-800 rounded-full" />
                 <div className="absolute inset-0 w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Setting up your account...</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Syncing your data from {platform || "Instagram"}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{message || `Syncing data from ${platform || "your platform"}`}</p>
             </div>
 
-            {/* Steps */}
             <div className="space-y-3 mb-6">
               {steps.map((step, idx) => (
                 <div key={idx} className="flex items-center space-x-3">
@@ -121,16 +143,63 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
               ))}
             </div>
 
-            {/* Progress info */}
             <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
               This usually takes 30-60 seconds. ({elapsed}s elapsed)
             </p>
           </>
         )}
 
+        {/* SYNCING_WAITING state — historic data fetch, takes 5+ minutes */}
+        {isWaiting && (
+          <>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-3xl">schedule</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Fetching your full history</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {message || "Your account has older content. We're fetching your full post history — this may take 5-6 minutes."}
+              </p>
+            </div>
+
+            {postsCount > 0 && (
+              <div className="flex items-center space-x-2 mb-4 p-3 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-lg">
+                <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-sm">check_circle</span>
+                <p className="text-xs text-green-700 dark:text-green-400">{postsCount} posts already loaded</p>
+              </div>
+            )}
+
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-xl mb-6">
+              <div className="flex items-start space-x-3">
+                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-base mt-0.5">email</span>
+                <div>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">We'll email you when it's ready</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">Feel free to close this page. We'll notify you at your registered email when sync completes.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={handleCheckStatus}
+                className="w-full py-3 border border-teal-600 text-teal-700 dark:text-teal-400 rounded-xl font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors flex items-center justify-center space-x-2"
+              >
+                <span className="material-symbols-outlined text-lg">refresh</span>
+                <span>Check Status</span>
+              </button>
+              <button
+                onClick={handleViewDashboard}
+                className="w-full py-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              >
+                Go to Dashboard Anyway
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* COMPLETED state */}
         {isCompleted && (
           <>
-            {/* Success State */}
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-3xl">check_circle</span>
@@ -141,7 +210,6 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
               </p>
             </div>
 
-            {/* Stats */}
             <div className="space-y-2 mb-6">
               <div className="flex items-center space-x-3 text-sm">
                 <span className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -169,18 +237,18 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
                 <div className="flex items-start space-x-2">
                   <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-base mt-0.5">info</span>
                   <p className="text-xs text-yellow-700 dark:text-yellow-400 leading-relaxed">
-                    Metrics are based on historic data — no recent posts found. Post on your platform and your analytics will update with the next sync.
+                    These analytics are based on historic data. No recent posts found in the last 90 days.
                   </p>
                 </div>
               </div>
             )}
 
             {dataFreshness === "STALE" && (
-              <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-lg">
+              <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-base mt-0.5">warning</span>
-                  <p className="text-xs text-orange-700 dark:text-orange-400 leading-relaxed">
-                    No post data available yet. Start posting on your platform and check back — data syncs automatically every night.
+                  <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-base mt-0.5">info</span>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                    No post data available yet. Connect your account or wait for sync to complete.
                   </p>
                 </div>
               </div>
@@ -196,16 +264,16 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
           </>
         )}
 
+        {/* FAILED state */}
         {isFailed && (
           <>
-            {/* Failed State */}
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-3xl">error</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Sync failed</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {syncError || "Something went wrong while syncing your account. Please try again."}
+                {syncError || "Something went wrong while syncing your account."}
               </p>
             </div>
 
@@ -232,9 +300,9 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
           </>
         )}
 
-        {timedOut && !isCompleted && !isFailed && (
+        {/* Timeout (still syncing after 2 min) */}
+        {timedOut && isSyncing && (
           <>
-            {/* Timeout State */}
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-3xl">hourglass_top</span>
@@ -247,7 +315,7 @@ export default function SyncStatusScreen({ creatorId, platform, username, onComp
 
             {postsCount > 0 && (
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">
-                {postsCount} posts loaded so far. Comments still processing.
+                {postsCount} posts loaded so far.
               </p>
             )}
 

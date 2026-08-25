@@ -132,7 +132,7 @@ const Header = () => {
                     <span>{item.label}</span>
                   </Link>
                 ))}
-                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3 flex items-center space-x-3">
+                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3 flex items-center justify-end space-x-3">
                   <AccountSwitcher />
                   <NotificationBell />
                   <DarkModeToggle />

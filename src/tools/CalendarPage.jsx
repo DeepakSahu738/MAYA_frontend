@@ -168,6 +168,16 @@ export default function CalendarPage() {
     } catch (err) { toast.error("Failed to approve"); }
   };
 
+  const handlePublish = async () => {
+    if (!editingPost) return;
+    try {
+      await axios.put(`${API_BASE}/api/schedule/publish/${editingPost.id}`, {}, getAxiosConfig(selectedCreator));
+      toast.success("Post marked as published!");
+      setModalOpen(false);
+      fetchPosts();
+    } catch (err) { toast.error("Failed to mark as published"); }
+  };
+
   const getPostsForDate = (date) => {
     const dateStr = formatDate(date);
     return posts.filter((p) => p.scheduledFor && p.scheduledFor.startsWith(dateStr));
@@ -328,6 +338,9 @@ export default function CalendarPage() {
                     <button onClick={handleDelete} className="px-3 py-2 text-xs text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Delete</button>
                     {editingPost.status === "PENDING" && (
                       <button onClick={handleApprove} className="px-3 py-2 text-xs text-green-600 dark:text-green-400 border border-green-300 dark:border-green-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">Approve</button>
+                    )}
+                    {(editingPost.status === "PENDING" || editingPost.status === "APPROVED") && (
+                      <button onClick={handlePublish} className="px-3 py-2 text-xs text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">Mark Published</button>
                     )}
                   </div>
                 )}
