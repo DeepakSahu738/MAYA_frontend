@@ -137,8 +137,9 @@ export default function Login() {
         Sign in
       </button>
 
+      {/* Social login — coming soon */}
+      {/*
       <p className="text-center text-gray-400">Or continue with</p>
-
       <div className="flex flex-col sm:flex-row justify-center sm:space-x-4 space-y-2 sm:space-y-0">
         <button className="flex items-center justify-center px-4 py-2 border rounded hover:bg-gray-100 w-full sm:w-auto">
           <FaFacebook className="mr-2" /> Facebook
@@ -147,6 +148,7 @@ export default function Login() {
           <FaGoogle className="mr-2" /> Google
         </button>
       </div>
+      */}
 
     </div>
   </div>

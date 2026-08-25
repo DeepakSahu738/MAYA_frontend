@@ -168,7 +168,7 @@ function ChatContent() {
                   <span className="material-symbols-outlined text-white text-3xl">psychology</span>
                 </div>
 
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1 text-center">
                   {greeting}{userName ? `, ${userName}` : ""}! 👋
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 text-center mb-6 max-w-md text-sm">

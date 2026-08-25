@@ -155,18 +155,18 @@ function ConnectedAccountsList() {
                 }}
                 className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:border-teal-200 dark:hover:border-teal-700 cursor-pointer transition-colors"
               >
-                <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 ${style.bg} rounded-full flex items-center justify-center`}>
+                <div className="flex items-center space-x-3 min-w-0 flex-1">
+                  <div className={`w-10 h-10 flex-shrink-0 ${style.bg} rounded-full flex items-center justify-center`}>
                     <span className="text-white text-sm font-bold">{style.label}</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">@{acc.username}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">@{acc.username}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {acc.platform} • Connected {formatDate(acc.connectedAt)}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
                     Connected
                   </span>
@@ -427,6 +427,10 @@ export default function UserAccountMgnt(){
                                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
                                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Quick Links</p>
                                     <div className="space-y-2">
+                                        <Link to="/plan" className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                            <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 mr-2 text-lg">dashboard</span>
+                                            <span className="text-sm text-gray-700 dark:text-gray-200">Plan</span>
+                                        </Link>
                                         <Link to="/analytics" className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                             <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 mr-2 text-lg">analytics</span>
                                             <span className="text-sm text-gray-700 dark:text-gray-200">Analytics</span>
@@ -439,7 +443,7 @@ export default function UserAccountMgnt(){
                                             <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 mr-2 text-lg">calendar_month</span>
                                             <span className="text-sm text-gray-700 dark:text-gray-200">Calendar</span>
                                         </Link>
-                                        <Link to="/ContentGenerationFlow" className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <Link to="/create" className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                             <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 mr-2 text-lg">auto_awesome</span>
                                             <span className="text-sm text-gray-700 dark:text-gray-200">Content Lab</span>
                                         </Link>

@@ -107,12 +107,12 @@ export default function ChatPromptGuide({ onPromptClick, compact = false }) {
       </p>
 
       {/* Category Tabs */}
-      <div className="flex items-center justify-center space-x-2 mb-5">
+      <div className="flex items-center justify-center flex-wrap gap-2 mb-5">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
-            className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
               activeCategory === cat.id
                 ? "bg-teal-600 text-white shadow-md"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"

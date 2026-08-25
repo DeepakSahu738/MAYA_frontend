@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import ChatPromptGuide from "./components/ChatPromptGuide";
 
@@ -118,7 +119,8 @@ export default function DemoPage() {
         for (const part of parts) {
           for (const line of part.split("\n")) {
             if (line.startsWith("data:")) {
-              const token = line.substring(5);
+              let token = line.substring(5);
+              if (token === "") token = "\n";
               if (token === "[DONE]") { setChatStreaming(false); return; }
               setChatMessages((prev) => {
                 const u = [...prev]; const last = u[u.length - 1];
@@ -408,7 +410,7 @@ export default function DemoPage() {
                   }`}>
                     {msg.role === "assistant" ? (
                       <div className="chat-markdown prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                         {chatStreaming && idx === chatMessages.length - 1 && <span className="inline-block w-1.5 h-4 bg-teal-500 animate-pulse ml-0.5 rounded-sm"/>}
                       </div>
                     ) : <p>{msg.content}</p>}
