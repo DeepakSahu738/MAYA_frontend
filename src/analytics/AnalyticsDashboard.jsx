@@ -328,21 +328,7 @@ function DashboardContent() {
     fetchFreshness();
   }, [selectedCreator]);
 
-  // Auto-refresh for syncing
-  useEffect(() => {
-    if (!dashboardData || selectedCreator?.isDemo) return;
-    if (dashboardData.healthScore?.score) return;
-    if (dataFreshness === "STALE" || dataFreshness === "HISTORIC") return; // Don't poll if freshness is already known
-    const poll = setInterval(async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/analytics/dashboard/${selectedCreator.id}`, getAxiosConfig(selectedCreator));
-        setDashboardData(res.data);
-        if (res.data.healthScore?.score) clearInterval(poll);
-      } catch {}
-    }, 10000);
-    const timeout = setTimeout(() => clearInterval(poll), 120000);
-    return () => { clearInterval(poll); clearTimeout(timeout); };
-  }, [dashboardData, selectedCreator, dataFreshness]);
+  // Dashboard data is shown as-is. Sync waiting is handled by SyncStatusScreen + email notification.
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pt-16">
@@ -380,17 +366,6 @@ function DashboardContent() {
 
         {/* Loading */}
         {loading && <DashboardSkeleton />}
-
-        {/* Syncing */}
-        {!loading && dashboardData && !dashboardData.healthScore?.score && !selectedCreator?.isDemo && dataFreshness !== "STALE" && dataFreshness !== "HISTORIC" && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 mb-4 relative">
-              <div className="w-16 h-16 border-4 border-teal-200 dark:border-teal-800 rounded-full" />
-              <div className="absolute inset-0 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Syncing your data...</p>
-          </div>
-        )}
 
         {/* Main Content */}
         {!loading && dashboardData && (dashboardData.healthScore?.score || selectedCreator?.isDemo) && (
