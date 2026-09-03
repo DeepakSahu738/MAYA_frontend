@@ -175,7 +175,11 @@ export default function CalendarPage() {
       toast.success("Post marked as published!");
       setModalOpen(false);
       fetchPosts();
-    } catch (err) { toast.error("Failed to mark as published"); }
+    } catch (err) {
+      // Show the backend's specific message (e.g. "Only approved posts can be marked as published")
+      const backendMsg = err.response?.data?.error || err.response?.data?.message;
+      toast.error(backendMsg || "Failed to mark as published");
+    }
   };
 
   const getPostsForDate = (date) => {

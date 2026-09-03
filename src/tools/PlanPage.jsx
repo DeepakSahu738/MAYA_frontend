@@ -70,14 +70,14 @@ function OperationalSummaryCards({ scheduledPosts, connectedAccounts }) {
   const nextPost = scheduledPosts
     .filter(p => (p.status === "PENDING" || p.status === "APPROVED") && p.scheduledFor && new Date(p.scheduledFor) >= now)
     .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor))[0] || null;
-  const draftsCount = scheduledPosts.filter(p => p.status === "PENDING").length;
+  // Only count PENDING drafts still in the future (past ones can't be scheduled anymore)
+  const draftsCount = scheduledPosts.filter(p => p.status === "PENDING" && p.scheduledFor && new Date(p.scheduledFor) >= now).length;
+  // "Planned" = upcoming posts remaining this week (from now until end of week, not past days)
   const thisWeekPosts = scheduledPosts.filter(p => {
     if (!p.scheduledFor) return false;
     const d = new Date(p.scheduledFor);
-    const now = new Date();
-    const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1);
-    const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
-    return d >= weekStart && d <= weekEnd;
+    const weekEnd = new Date(now); weekEnd.setDate(now.getDate() - now.getDay() + 7); weekEnd.setHours(23, 59, 59);
+    return d >= now && d <= weekEnd;
   });
 
   const cards = [

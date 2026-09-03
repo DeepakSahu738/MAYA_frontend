@@ -91,11 +91,14 @@ const METRICS_GUIDE = [
 ];
 
 // --- Operational Insight Cards ---
-function InsightCards({ dashboardData, connectedAccounts }) {
+function InsightCards({ dashboardData, connectedAccounts, selectedCreator }) {
   const rateCards = dashboardData?.rateCards || [];
   const engagementCard = rateCards.find(c => c.metricName === "engagement_rate");
   const postingFreq = rateCards.find(c => c.metricName === "posting_frequency");
   const bestTime = dashboardData?.bestPostingTime;
+
+  // Use the currently selected account (match by id), not the first connected one
+  const activeAccount = connectedAccounts?.find(a => a.id === selectedCreator?.id) || selectedCreator || null;
 
   const cards = [
     {
@@ -108,8 +111,8 @@ function InsightCards({ dashboardData, connectedAccounts }) {
     {
       icon: "group",
       label: "Followers",
-      value: connectedAccounts[0]?.followerCount != null ? connectedAccounts[0].followerCount.toLocaleString() : "—",
-      sub: connectedAccounts[0]?.platform || null,
+      value: activeAccount?.followerCount != null ? activeAccount.followerCount.toLocaleString() : "—",
+      sub: activeAccount?.platform || dashboardData?.platform || null,
       color: "text-purple-600 dark:text-purple-400",
     },
     {
@@ -380,7 +383,7 @@ function DashboardContent() {
         {!loading && dashboardData && (
           <>
             {/* Section 1: Operational Insight Cards */}
-            <InsightCards dashboardData={dashboardData} connectedAccounts={connectedAccounts} />
+            <InsightCards dashboardData={dashboardData} connectedAccounts={connectedAccounts} selectedCreator={selectedCreator} />
 
             {/* Section 2: Primary Trend Chart */}
             <div className="mb-8">
