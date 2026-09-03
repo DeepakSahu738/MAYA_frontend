@@ -67,11 +67,16 @@ export default function HealthScoreCard({ healthScore }) {
 
   const { score, grade, componentScores, strengths, improvements } = healthScore;
 
+  // Insufficient data / null score → empty state
+  const isInsufficient = score === null || score === undefined || grade === "Insufficient Data";
+
   const getGradient = (grade) => {
     switch (grade) {
       case "Excellent": return "from-teal-600 via-teal-500 to-cyan-500";
       case "Good": return "from-green-600 via-green-500 to-emerald-400";
+      case "Fair": return "from-yellow-600 via-yellow-500 to-amber-400";
       case "Average": return "from-yellow-600 via-yellow-500 to-amber-400";
+      case "Critical": return "from-red-600 via-red-500 to-orange-400";
       case "Poor": return "from-red-600 via-red-500 to-orange-400";
       default: return "from-gray-600 to-gray-500";
     }
@@ -84,6 +89,35 @@ export default function HealthScoreCard({ healthScore }) {
     return "bg-red-500";
   };
 
+  const getDescription = (score) => {
+    if (score >= 80) return "Your account is performing excellently. Keep it up!";
+    if (score >= 60) return "Good performance with room for improvement.";
+    if (score >= 40) return "Your account needs attention in some areas.";
+    return "Significant improvements needed across multiple areas.";
+  };
+
+  // Insufficient data empty state
+  if (isInsufficient) {
+    return (
+      <div className="rounded-2xl overflow-hidden shadow-lg">
+        <div className="bg-gradient-to-r from-gray-600 to-gray-500 p-6 md:p-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-white text-center md:text-left">
+              <p className="text-sm font-medium opacity-80 uppercase tracking-wide">Account Health</p>
+              <h2 className="text-3xl font-bold mt-1">Insufficient Data</h2>
+              <p className="text-sm opacity-80 mt-2 max-w-xs">
+                We need more post activity to calculate your health score. Keep posting and check back soon.
+              </p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 w-[130px] h-[130px] flex items-center justify-center">
+              <span className="material-symbols-outlined text-white/70 text-5xl">hourglass_empty</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl overflow-hidden shadow-lg">
       {/* Gradient Banner */}
@@ -94,10 +128,7 @@ export default function HealthScoreCard({ healthScore }) {
             <p className="text-sm font-medium opacity-80 uppercase tracking-wide">Account Health</p>
             <h2 className="text-3xl font-bold mt-1">{grade}</h2>
             <p className="text-sm opacity-80 mt-2 max-w-xs">
-              {score >= 80 ? "Your account is performing excellently. Keep it up!" :
-               score >= 60 ? "Good performance with room for improvement." :
-               score >= 40 ? "Your account needs attention in some areas." :
-               "Significant improvements needed across multiple areas."}
+              {getDescription(score)}
             </p>
           </div>
 

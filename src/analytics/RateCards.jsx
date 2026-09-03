@@ -44,7 +44,7 @@ function useCountUp(target, duration = 1200, trigger = true) {
   return value;
 }
 
-function RateCard({ card, delay }) {
+function RateCard({ card, delay, unavailableInfo, platformLabel }) {
   const [visible, setVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const ref = useRef(null);
@@ -55,6 +55,10 @@ function RateCard({ card, delay }) {
   }, [delay]);
 
   const animatedValue = useCountUp(card.currentValue, 1200, visible);
+
+  // Determine card state
+  const isUnavailable = !!unavailableInfo;
+  const isEmpty = !isUnavailable && (card.currentValue === null || card.currentValue === undefined);
 
   const getTrendColor = (delta) => {
     if (delta === null || delta === undefined) return "border-l-gray-200 dark:border-l-gray-600";
@@ -95,7 +99,7 @@ function RateCard({ card, delay }) {
         <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
           {formatMetricName(card.metricName)}
         </p>
-        {METRIC_TOOLTIPS[card.metricName] && (
+        {(METRIC_TOOLTIPS[card.metricName] || isUnavailable) && (
           <div className="relative"
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
@@ -106,7 +110,7 @@ function RateCard({ card, delay }) {
             </span>
             {showTooltip && (
               <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 dark:bg-gray-700 text-white text-[11px] leading-relaxed rounded-lg shadow-lg z-30 pointer-events-none">
-                {METRIC_TOOLTIPS[card.metricName]}
+                {isUnavailable ? unavailableInfo.reason : METRIC_TOOLTIPS[card.metricName]}
                 <div className="absolute top-full right-2 w-2 h-2 bg-gray-900 dark:bg-gray-700 rotate-45 -mt-1" />
               </div>
             )}
@@ -114,10 +118,18 @@ function RateCard({ card, delay }) {
         )}
       </div>
       <div className="flex items-end justify-between">
-        <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-          {card.currentValue !== null ? formatValue(animatedValue, card.unit) : "—"}
-        </span>
-        {arrow && (
+        {isUnavailable ? (
+          <span className="text-xs text-gray-400 dark:text-gray-500 italic">
+            Not available on {platformLabel}
+          </span>
+        ) : isEmpty ? (
+          <span className="text-xs text-gray-400 dark:text-gray-500 italic">Not enough data yet</span>
+        ) : (
+          <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+            {formatValue(animatedValue, card.unit)}
+          </span>
+        )}
+        {!isUnavailable && !isEmpty && arrow && (
           <div className={`flex items-center px-2 py-1 rounded-lg ${arrow.bg}`}>
             <span className={`material-symbols-outlined text-sm ${arrow.color}`}>{arrow.icon}</span>
             <span className={`text-xs font-semibold ${arrow.color} ml-0.5`}>
@@ -130,13 +142,28 @@ function RateCard({ card, delay }) {
   );
 }
 
-export default function RateCards({ rateCards }) {
+export default function RateCards({ rateCards, unavailableMetrics, platform }) {
   if (!rateCards || rateCards.length === 0) return null;
+
+  // Build a lookup of unavailable metric keys → { label, reason }
+  const unavailableMap = {};
+  (unavailableMetrics || []).forEach((m) => { unavailableMap[m.key] = m; });
+
+  // Friendly platform label for "Not available on X"
+  const platformLabel = platform
+    ? platform.charAt(0) + platform.slice(1).toLowerCase()
+    : "this platform";
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {rateCards.map((card, idx) => (
-        <RateCard key={idx} card={card} delay={idx * 100} />
+        <RateCard
+          key={idx}
+          card={card}
+          delay={idx * 100}
+          unavailableInfo={unavailableMap[card.metricName] || null}
+          platformLabel={platformLabel}
+        />
       ))}
     </div>
   );

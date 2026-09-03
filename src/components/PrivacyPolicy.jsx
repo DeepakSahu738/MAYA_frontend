@@ -80,7 +80,7 @@ export default function PrivacyPolicy() {
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="font-medium text-gray-800 dark:text-gray-200">Google Cloud Platform</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hosts our backend infrastructure (Cloud Run, us-central1 region). Processes and stores data on Google's secure infrastructure.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hosts our backend infrastructure (Cloud Run, asia-southeast1 region). Processes and stores data on Google's secure infrastructure.</p>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="font-medium text-gray-800 dark:text-gray-200">Aiven (PostgreSQL)</p>
@@ -104,7 +104,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">6. Data Storage & Security</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Storage location:</strong> Google Cloud (us-central1) and Aiven cloud PostgreSQL</li>
+              <li><strong>Storage location:</strong> Google Cloud (asia-southeast1) and Aiven cloud PostgreSQL</li>
               <li><strong>Encryption:</strong> Data is encrypted in transit (HTTPS/TLS). Database connections use SSL.</li>
               <li><strong>Authentication:</strong> JWT-based authentication. Passwords are bcrypt-hashed. No plain-text credentials are stored.</li>
               <li><strong>Access control:</strong> Social media data is isolated per user. You can only access your own connected accounts' data.</li>

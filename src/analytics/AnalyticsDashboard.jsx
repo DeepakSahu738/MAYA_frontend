@@ -18,6 +18,8 @@ import MostLikedComments from "./MostLikedComments";
 import CTAInsight from "./CTAInsight";
 import CaptionLengthInsight from "./CaptionLengthInsight";
 import QuestionsVsStatements from "./QuestionsVsStatements";
+import PlatformInsights from "./PlatformInsights";
+import { PlatformBadge } from "./platformConfig";
 import { getAxiosConfig, getAuthHeaders } from "./apiHelper";
 import { DashboardSkeleton } from "../components/SkeletonLoader";
 
@@ -336,7 +338,14 @@ function DashboardContent() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Insights</h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Insights</h1>
+            {dashboardData?.platform && (
+              <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <PlatformBadge platform={dashboardData.platform} size="text-sm" />
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {selectedCreator
               ? `Recent publishing activity and performance for @${selectedCreator.username}`
@@ -381,6 +390,9 @@ function DashboardContent() {
               />
             </div>
 
+            {/* Section 2.5: Platform-specific Insights (FB/YT hero cards) */}
+            <PlatformInsights platformInsights={dashboardData.platformInsights} platform={dashboardData.platform} />
+
             {/* Section 3: Connected Platforms Summary */}
             <PlatformsSummary connectedAccounts={connectedAccounts} />
 
@@ -411,7 +423,11 @@ function DashboardContent() {
               {showAdvanced && (
                 <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 space-y-6">
                   <HealthScoreCard healthScore={dashboardData.healthScore} />
-                  <RateCards rateCards={dashboardData.rateCards} />
+                  <RateCards
+                    rateCards={dashboardData.rateCards}
+                    unavailableMetrics={dashboardData.unavailableMetrics}
+                    platform={dashboardData.platform}
+                  />
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <ContentMix contentMix={dashboardData.contentMix} />
@@ -420,25 +436,59 @@ function DashboardContent() {
 
                   <BestWorstPosts bestPosts={dashboardData.bestPosts} worstPosts={dashboardData.worstPosts} />
 
-                  <HashtagsTable mostUsedHashtags={dashboardData.mostUsedHashtags} topPerformingHashtags={dashboardData.topPerformingHashtags} />
+                  {(dashboardData.mostUsedHashtags?.length > 0 || dashboardData.topPerformingHashtags?.length > 0) && (
+                    <HashtagsTable mostUsedHashtags={dashboardData.mostUsedHashtags} topPerformingHashtags={dashboardData.topPerformingHashtags} />
+                  )}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <SentimentChart sentimentBreakdown={dashboardData.sentimentBreakdown} />
-                    <Superfans topCommenters={dashboardData.topCommenters} />
-                  </div>
+                  {/* Comment-based sections — null for Facebook */}
+                  {(dashboardData.sentimentBreakdown || dashboardData.topCommenters) && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {dashboardData.sentimentBreakdown && <SentimentChart sentimentBreakdown={dashboardData.sentimentBreakdown} />}
+                      {dashboardData.topCommenters && <Superfans topCommenters={dashboardData.topCommenters} />}
+                    </div>
+                  )}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <CommonWords commonWords={dashboardData.commonWords} />
-                  </div>
+                  {dashboardData.commonWords && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <CommonWords commonWords={dashboardData.commonWords} />
+                    </div>
+                  )}
 
-                  <QuestionsInsight questionsInsight={dashboardData.questionsInsight} />
-                  <MostLikedComments mostLikedComments={dashboardData.mostLikedComments} />
+                  {dashboardData.questionsInsight && <QuestionsInsight questionsInsight={dashboardData.questionsInsight} />}
+                  {dashboardData.mostLikedComments && <MostLikedComments mostLikedComments={dashboardData.mostLikedComments} />}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <CTAInsight ctaInsight={dashboardData.ctaInsight} />
-                    <CaptionLengthInsight captionLengthInsight={dashboardData.captionLengthInsight} />
-                    <QuestionsVsStatements questionsVsStatements={dashboardData.questionsVsStatements} />
-                  </div>
+                  {(dashboardData.ctaInsight || dashboardData.captionLengthInsight || dashboardData.questionsVsStatements) && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {dashboardData.ctaInsight && <CTAInsight ctaInsight={dashboardData.ctaInsight} />}
+                      {dashboardData.captionLengthInsight && <CaptionLengthInsight captionLengthInsight={dashboardData.captionLengthInsight} />}
+                      {dashboardData.questionsVsStatements && <QuestionsVsStatements questionsVsStatements={dashboardData.questionsVsStatements} />}
+                    </div>
+                  )}
+
+                  {/* Unavailable metrics footer */}
+                  {dashboardData.unavailableMetrics?.length > 0 && (
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Not available on {dashboardData.platform ? dashboardData.platform.charAt(0) + dashboardData.platform.slice(1).toLowerCase() : "this platform"}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {dashboardData.unavailableMetrics.map((m) => (
+                          <div key={m.key} className="group relative">
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg text-xs text-gray-500 dark:text-gray-400 cursor-help">
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              <span>{m.label}</span>
+                            </span>
+                            {m.reason && (
+                              <div className="absolute bottom-full left-0 mb-2 w-56 p-2 bg-gray-900 dark:bg-gray-700 text-white text-[11px] leading-relaxed rounded-lg shadow-lg z-30 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                                {m.reason}
+                                <div className="absolute top-full left-3 w-2 h-2 bg-gray-900 dark:bg-gray-700 rotate-45 -mt-1" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
