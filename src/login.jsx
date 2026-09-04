@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { toast } from 'react-toastify';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function Login() {
@@ -130,7 +130,7 @@ export default function Login() {
           <input type="checkbox" className="mr-2" />
           Remember me
         </label>
-        <a href="#" className="text-blue-600">Forgot your password?</a>
+        <Link to="/forgot-password" className="text-blue-600 hover:underline">Forgot your password?</Link>
       </div>
 
       <button onClick={handleLogin} className="w-full bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700">

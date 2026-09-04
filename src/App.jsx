@@ -20,6 +20,8 @@ import DemoPage from './DemoPage.jsx';
 import { CreatorProvider } from './analytics/CreatorContext.jsx';
 import Login from './login.jsx';
 import Register from './register.jsx';
+import ForgotPassword from './ForgotPassword.jsx';
+import ResetPassword from './ResetPassword.jsx';
 import NotFound from './components/NotFound.jsx';
 import PrivacyPolicy from './components/PrivacyPolicy.jsx';
 import TermsOfService from './components/TermsOfService.jsx';
@@ -64,6 +66,8 @@ return (
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
 
