@@ -52,6 +52,49 @@ function formatTime(isoStr) {
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
+// Compact time for pills: "9a", "2:30p"
+function compactTime(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? "p" : "a";
+  h = h % 12 || 12;
+  return m === 0 ? `${h}${ampm}` : `${h}:${String(m).padStart(2, "0")}${ampm}`;
+}
+
+// Material icon name for media type
+function mediaIcon(mediaType) {
+  const t = (mediaType || "").toUpperCase();
+  if (t === "VIDEO" || t === "REEL" || t === "REELS") return "movie";
+  if (t === "CAROUSEL" || t === "CAROUSEL_ALBUM") return "collections";
+  return "image"; // IMAGE / default
+}
+
+// Left accent bar color by status
+const STATUS_ACCENT = {
+  PENDING: "border-l-yellow-400 dark:border-l-yellow-500",
+  APPROVED: "border-l-green-500",
+  PUBLISHED: "border-l-blue-500",
+  REJECTED: "border-l-red-400",
+  FAILED: "border-l-red-500",
+};
+
+// Status dot color
+const STATUS_DOT = {
+  PENDING: "bg-yellow-400",
+  APPROVED: "bg-green-500",
+  PUBLISHED: "bg-blue-500",
+  REJECTED: "bg-red-400",
+  FAILED: "bg-red-500",
+};
+
+// Is this a pending/approved post whose scheduled time has already passed? (missed)
+function isMissed(post) {
+  if (post.status === "PUBLISHED" || post.status === "REJECTED" || post.status === "FAILED") return false;
+  return post.scheduledFor && new Date(post.scheduledFor) < new Date();
+}
+
 export default function CalendarPage() {
   const { selectedCreator } = useCreator();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -60,6 +103,7 @@ export default function CalendarPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [form, setForm] = useState({ caption: "", hashtags: "", mediaType: "IMAGE", scheduledFor: "" });
+  const [dayModal, setDayModal] = useState(null); // { date, posts } — "view all posts for this day"
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -182,6 +226,48 @@ export default function CalendarPage() {
     }
   };
 
+  // --- Inline quick actions for the day-posts modal (operate on a post directly) ---
+  const refreshDayModal = async (updater) => {
+    const fresh = await axios.get(`${API_BASE}/api/schedule/list?creatorId=${selectedCreator.id}`, getAxiosConfig(selectedCreator));
+    const allPosts = fresh.data || [];
+    setPosts(allPosts);
+    // Update the open day modal's posts too (or close if none left)
+    if (dayModal) {
+      const dateStr = formatDate(dayModal.date);
+      const remaining = allPosts.filter((p) => p.scheduledFor && p.scheduledFor.startsWith(dateStr));
+      if (remaining.length === 0) setDayModal(null);
+      else setDayModal({ ...dayModal, posts: remaining });
+    }
+  };
+
+  const quickApprove = async (post) => {
+    try {
+      await axios.put(`${API_BASE}/api/schedule/approve/${post.id}`, {}, getAxiosConfig(selectedCreator));
+      toast.success("Post approved!");
+      await refreshDayModal();
+    } catch { toast.error("Failed to approve"); }
+  };
+
+  const quickPublish = async (post) => {
+    try {
+      await axios.put(`${API_BASE}/api/schedule/publish/${post.id}`, {}, getAxiosConfig(selectedCreator));
+      toast.success("Post marked as published!");
+      await refreshDayModal();
+    } catch (err) {
+      const backendMsg = err.response?.data?.error || err.response?.data?.message;
+      toast.error(backendMsg || "Failed to mark as published");
+    }
+  };
+
+  const quickDelete = async (post) => {
+    if (!confirm("Delete this post?")) return;
+    try {
+      await axios.delete(`${API_BASE}/api/schedule/delete/${post.id}`, getAxiosConfig(selectedCreator));
+      toast.success("Post deleted");
+      await refreshDayModal();
+    } catch { toast.error("Failed to delete"); }
+  };
+
   const getPostsForDate = (date) => {
     const dateStr = formatDate(date);
     return posts.filter((p) => p.scheduledFor && p.scheduledFor.startsWith(dateStr));
@@ -242,11 +328,11 @@ export default function CalendarPage() {
                 <div
                   key={idx}
                   onClick={() => isPast ? null : openCreateModal(cell.date)}
-                  className={`min-h-[100px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 transition-colors ${
+                  className={`group relative min-h-[100px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 transition-colors ${
                     isPast
                       ? "bg-gray-100/60 dark:bg-gray-900/50 cursor-not-allowed opacity-60"
                       : "cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/10"
-                  } ${!cell.isCurrentMonth ? "bg-gray-50/50 dark:bg-gray-900/30" : ""}`}
+                  } ${isToday ? "bg-teal-50/40 dark:bg-teal-900/10" : ""} ${!cell.isCurrentMonth ? "bg-gray-50/50 dark:bg-gray-900/30" : ""}`}
                 >
                   {/* Date number */}
                   <div className="flex items-center justify-between px-1">
@@ -256,23 +342,49 @@ export default function CalendarPage() {
                       {cell.date.getDate()}
                     </span>
                     {dayPosts.length > 0 && (
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500">{dayPosts.length}</span>
+                      <span className="text-[9px] font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">{dayPosts.length}</span>
                     )}
                   </div>
 
+                  {/* Empty future day — "+ Add" hover hint */}
+                  {dayPosts.length === 0 && !isPast && cell.isCurrentMonth && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <span className="inline-flex items-center space-x-1 text-[10px] text-teal-500 dark:text-teal-400 font-medium">
+                        <span className="material-symbols-outlined text-sm">add</span>
+                        <span>Add</span>
+                      </span>
+                    </div>
+                  )}
+
                   {/* Posts */}
-                  <div className="mt-1 space-y-0.5">
-                    {dayPosts.slice(0, 3).map((post) => (
+                  <div className="mt-1 space-y-1">
+                    {[...dayPosts]
+                      .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor))
+                      .slice(0, 3)
+                      .map((post) => (
                       <div
                         key={post.id}
                         onClick={(e) => { e.stopPropagation(); openEditModal(post); }}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium truncate border cursor-pointer hover:shadow-sm transition-shadow ${STATUS_STYLES[post.status] || STATUS_STYLES.PENDING}`}
+                        title={`${post.caption || "Untitled"}${isMissed(post) ? " — scheduled time passed" : ""}`}
+                        className={`flex items-center space-x-1 pl-1.5 pr-1 py-1 rounded-md bg-gray-50 dark:bg-gray-700/60 border-l-[3px] ${STATUS_ACCENT[post.status] || STATUS_ACCENT.PENDING} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm transition-all`}
                       >
-                        {post.caption || "Untitled"}
+                        {/* Status dot */}
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[post.status] || STATUS_DOT.PENDING}`} />
+                        <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-400 flex-shrink-0">{compactTime(post.scheduledFor)}</span>
+                        <span className="text-[10px] font-medium text-gray-700 dark:text-gray-200 truncate flex-1">{post.caption || "Untitled"}</span>
+                        {/* Missed warning */}
+                        {isMissed(post) && (
+                          <span className="material-symbols-outlined text-[12px] text-orange-500 flex-shrink-0" title="Scheduled time has passed">warning</span>
+                        )}
                       </div>
                     ))}
                     {dayPosts.length > 3 && (
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 px-1">+{dayPosts.length - 3} more</p>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDayModal({ date: cell.date, posts: dayPosts }); }}
+                        className="w-full text-left text-[10px] text-teal-600 dark:text-teal-400 font-medium px-1 hover:underline"
+                      >
+                        +{dayPosts.length - 3} more
+                      </button>
                     )}
                   </div>
                 </div>
@@ -355,6 +467,87 @@ export default function CalendarPage() {
                   {editingPost ? "Update" : "Schedule"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Day Posts Modal — view all posts for a day */}
+      {dayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4" onClick={() => setDayModal(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  {dayModal.date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{dayModal.posts.length} post{dayModal.posts.length !== 1 ? "s" : ""} scheduled</p>
+              </div>
+              <button onClick={() => setDayModal(null)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span className="material-symbols-outlined text-gray-500 text-lg">close</span>
+              </button>
+            </div>
+
+            {/* Posts list */}
+            <div className="p-4 overflow-y-auto space-y-2">
+              {[...dayModal.posts]
+                .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor))
+                .map((post) => {
+                  const tags = (post.hashtags || "").split(/[\s,]+/).filter(Boolean).slice(0, 3);
+                  return (
+                  <div
+                    key={post.id}
+                    className={`p-3 rounded-xl border-l-[3px] ${STATUS_ACCENT[post.status] || STATUS_ACCENT.PENDING} border-y border-r border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
+                  >
+                    {/* Top row: time + media icon + status */}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center space-x-2">
+                        <span className="material-symbols-outlined text-sm text-gray-400 dark:text-gray-500">{mediaIcon(post.mediaType)}</span>
+                        <span className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                          {new Date(post.scheduledFor).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${STATUS_STYLES[post.status] || STATUS_STYLES.PENDING}`}>
+                        {post.status}
+                      </span>
+                    </div>
+
+                    {/* Caption — click to edit */}
+                    <button
+                      onClick={() => { setDayModal(null); openEditModal(post); }}
+                      className="w-full text-left"
+                    >
+                      <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        {post.caption || "Untitled"}
+                      </p>
+                    </button>
+
+                    {/* Hashtag chips */}
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {tags.map((t, i) => (
+                          <span key={i} className="text-[9px] px-1.5 py-0.5 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-full">
+                            {t.startsWith("#") ? t : `#${t}`}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Inline quick actions */}
+                    <div className="flex items-center space-x-2 mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-700">
+                      {post.status === "PENDING" && (
+                        <button onClick={() => quickApprove(post)} className="text-[11px] font-medium text-green-600 dark:text-green-400 hover:underline">Approve</button>
+                      )}
+                      {(post.status === "PENDING" || post.status === "APPROVED") && (
+                        <button onClick={() => quickPublish(post)} className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline">Publish</button>
+                      )}
+                      <button onClick={() => quickDelete(post)} className="text-[11px] font-medium text-red-500 dark:text-red-400 hover:underline">Delete</button>
+                      <button onClick={() => { setDayModal(null); openEditModal(post); }} className="text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:underline ml-auto">Edit</button>
+                    </div>
+                  </div>
+                  );
+                })}
             </div>
           </div>
         </div>

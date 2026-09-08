@@ -1,7 +1,75 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { getRoleFromToken } from "../tokenDecoder/detokenizer";
+
+// Editable combo box — click to open full list, or type a custom value
+function ComboBox({ value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // If the current value exactly matches an option (i.e. it was selected, not typed),
+  // show the FULL list. Only filter when the user is typing a custom/partial value.
+  const query = (value || "").toLowerCase();
+  const isExactMatch = options.some((o) => o.toLowerCase() === query);
+  const filtered = isExactMatch || !query
+    ? options
+    : options.filter((o) => o.toLowerCase().includes(query));
+  const showOptions = filtered.length > 0 ? filtered : options;
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <input
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Select or type your own..."
+        className="w-full p-3 pr-9 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+      />
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-teal-500 p-1"
+        tabIndex={-1}
+      >
+        <span className={`material-symbols-outlined text-lg transition-transform ${open ? "rotate-180" : ""}`}>expand_more</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-30 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg">
+          {showOptions.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => { onChange(opt); setOpen(false); }}
+              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                opt === value
+                  ? "bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 font-medium"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+          {/* Hint that custom values are allowed */}
+          {value && !options.includes(value) && (
+            <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-700 italic">
+              Using custom: "{value}"
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
@@ -139,15 +207,11 @@ export default function ContentGenerator({ platform }) {
               {fields.map((field) => (
                 <div key={field.key}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{field.label}</label>
-                  <select
+                  <ComboBox
                     value={formData[field.key]}
-                    onChange={(e) => handleSelect(field.key, e.target.value)}
-                    className="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 cursor-pointer appearance-none"
-                  >
-                    {field.options.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                    options={field.options}
+                    onChange={(val) => handleSelect(field.key, val)}
+                  />
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{field.hint}</p>
                 </div>
               ))}

@@ -93,14 +93,30 @@ const METRICS_GUIDE = [
 // --- Operational Insight Cards ---
 function InsightCards({ dashboardData, connectedAccounts, selectedCreator }) {
   const rateCards = dashboardData?.rateCards || [];
-  const engagementCard = rateCards.find(c => c.metricName === "engagement_rate");
   const postingFreq = rateCards.find(c => c.metricName === "posting_frequency");
   const bestTime = dashboardData?.bestPostingTime;
+  const health = dashboardData?.healthScore;
 
   // Use the currently selected account (match by id), not the first connected one
   const activeAccount = connectedAccounts?.find(a => a.id === selectedCreator?.id) || selectedCreator || null;
 
+  // Health score display + color
+  const healthScoreValue = health?.score != null ? `${health.score}/100` : "—";
+  const healthColor = health?.score == null
+    ? "text-gray-500"
+    : health.score >= 80 ? "text-teal-600 dark:text-teal-400"
+    : health.score >= 60 ? "text-green-600 dark:text-green-400"
+    : health.score >= 40 ? "text-yellow-600 dark:text-yellow-400"
+    : "text-red-600 dark:text-red-400";
+
   const cards = [
+    {
+      icon: "monitor_heart",
+      label: "Health Score",
+      value: healthScoreValue,
+      sub: health?.grade || null,
+      color: healthColor,
+    },
     {
       icon: "event_repeat",
       label: "Posting Consistency",
@@ -121,13 +137,6 @@ function InsightCards({ dashboardData, connectedAccounts, selectedCreator }) {
       value: bestTime ? `${bestTime.bestDay}, ${bestTime.bestHour > 12 ? bestTime.bestHour - 12 + " PM" : bestTime.bestHour + " AM"}` : "—",
       sub: bestTime?.avgEngagementRate ? `${bestTime.avgEngagementRate.toFixed(1)}% avg ER` : null,
       color: "text-orange-600 dark:text-orange-400",
-    },
-    {
-      icon: "trending_up",
-      label: "Engagement Rate",
-      value: engagementCard?.currentValue != null ? `${engagementCard.currentValue.toFixed(2)}%` : "—",
-      sub: engagementCard?.deltaVsLastWeek != null ? `${engagementCard.deltaVsLastWeek >= 0 ? "+" : ""}${engagementCard.deltaVsLastWeek.toFixed(2)} vs last week` : null,
-      color: engagementCard?.deltaVsLastWeek >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400",
     },
   ];
 

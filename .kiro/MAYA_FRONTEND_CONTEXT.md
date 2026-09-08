@@ -4,9 +4,11 @@
 MAYA is an AI-powered creator operations assistant. This is the React frontend.
 - **Positioning:** "Your creator workspace. All in one place." — NOT an analytics tool, NOT a Hootsuite clone
 - **Tech Stack:** React 19 + Vite 6 + TailwindCSS 3.4 + Recharts + react-icons
-- **Deployment:** Firebase Hosting (dist/ folder, SPA rewrite) → `https://mayamanage.web.app`
+- **Deployment:** Firebase Hosting (dist/ folder, SPA rewrite) → `https://mayamanage.web.app` / `https://mayamanage.com`. Auto-deploys on push to `main` via GitHub Actions.
 - **Dark mode:** Default dark, togglable to light, stored in localStorage ("maya-theme")
 - **Build status:** Passing (all localhost references replaced with production URL)
+- **Backend region:** Cloud Run `asia-southeast1` (migrated from us-central1)
+- **Markdown:** react-markdown + remark-gfm on all chat surfaces (tables, lists, strikethrough)
 
 ---
 
@@ -16,17 +18,22 @@ MAYA is an AI-powered creator operations assistant. This is the React frontend.
 ```
 src/
 ├── App.jsx                          # Routes, providers, layout
-├── Home.jsx                         # Landing page (dark gradient hero, stacked image, creator-ops messaging)
-├── DemoPage.jsx                     # Standalone demo playground (no header/footer from main app)
-├── login.jsx / register.jsx         # Auth pages
+├── Home.jsx                         # Landing page (neural constellation hero, feature marquee, bento grid, before/after)
+├── DemoPage.jsx                     # Standalone demo playground (no header/footer; remark-gfm markdown)
+├── login.jsx                        # Login (Forgot Password link; Google/FB hidden/commented)
+├── register.jsx                     # Registration — 2-step OTP email verification flow
+├── ForgotPassword.jsx               # Email input → POST /auth/forgot-password
+├── ResetPassword.jsx                # Reads ?token= from URL → POST /auth/reset-password
 ├── DarkModeToggle.jsx               # Sun/moon toggle, localStorage persistence
-├── UserAccountMgnt.jsx              # Account page (profile, connected accounts, usage, weekly reports, settings)
+├── UserAccountMgnt.jsx              # Account page (profile, connected accounts, usage, reports, settings, delete account)
 ├── ContentGeneration*.jsx           # 6 platform pages (thin wrappers using shared component)
 │
 ├── analytics/
 │   ├── CreatorContext.jsx           # React context: auth state, connected accounts, demo creators, selectedCreator
-│   ├── AnalyticsDashboard.jsx       # "Improve → Insights" page (4 cards, chart, AI insights, 24+ advanced metrics)
-│   ├── AIChatPage.jsx               # Full AI chat page (streaming, markdown, categorized prompts)
+│   ├── AnalyticsDashboard.jsx       # "Improve → Insights" — platform-aware (badge, platform insights, unavailable footer)
+│   ├── platformConfig.jsx           # Platform theming map + PlatformBadge + formatInsightValue (icon/color per platform)
+│   ├── PlatformInsights.jsx         # Generic loop over platformInsights[] (FB/YT hero cards)
+│   ├── AIChatPage.jsx               # Full AI chat page (streaming, remark-gfm markdown, categorized prompts)
 │   ├── AIChatPanel.jsx              # Floating chat widget (rate limit handling with cooldown)
 │   ├── PhylloConnect.jsx            # Phyllo SDK flow + SyncStatusScreen trigger
 │   ├── apiHelper.js                 # getAuthHeaders/getAxiosConfig — conditional Bearer token based on isDemo
@@ -91,7 +98,9 @@ src/
 
 ### Public:
 - `/` — Homepage
-- `/login`, `/register` — Auth
+- `/login`, `/register` — Auth (register uses OTP email verification)
+- `/forgot-password` — Request password reset email
+- `/reset-password?token=X` — Set new password from email link
 - `/demo` — Demo (standalone, own header)
 - `/privacy` — Privacy Policy
 - `/terms` — Terms of Service
@@ -120,8 +129,13 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 | Endpoint | Method | Auth | Purpose |
 |----------|--------|------|---------|
 | `/auth/login` | POST | None | Returns JWT |
-| `/auth/registerUser` | POST | None | Register |
+| `/auth/send-otp` | POST | None | Send 6-digit OTP to email (registration step 1) |
+| `/auth/verify-otp` | POST | None | Verify OTP → creates user, returns JWT (step 2) |
+| `/auth/registerUser` | POST | None | DEPRECATED (returns 410) — replaced by OTP flow |
+| `/auth/forgot-password` | POST | None | Send reset link (always returns SENT — anti-enumeration) |
+| `/auth/reset-password` | POST | None | Reset password (body: { token, newPassword }) |
 | `/auth/getUserById/{id}` | GET | Bearer | User profile |
+| `/auth/deleteUserById/{id}` | DELETE | Bearer | PERMANENT account deletion (cascades all data) |
 
 ### Phyllo (Account Connection):
 | Endpoint | Method | Auth | Purpose |
@@ -138,8 +152,8 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 ### Analytics:
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/analytics/creators` | GET | Demo creator list |
-| `/api/analytics/dashboard/{creatorId}` | GET | Full 24-metric dashboard |
+| `/api/analytics/creators` | GET | Demo creator list (only 1 demo: fitlife_by_meera, INSTAGRAM) |
+| `/api/analytics/dashboard/{creatorId}` | GET | Full dashboard — now platform-aware (see Platform-Aware Dashboard section) |
 | `/api/analytics/weekly-reports/{creatorId}` | GET | Weekly snapshots |
 
 ### Post Activity (for streak + goal):
@@ -152,6 +166,7 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 |----------|--------|---------|
 | `/api/goals/current?creatorId=X` | GET | This week's goal (target, weekStart, exists) |
 | `/api/goals/set` | POST | Set/update goal (body: { creatorId, target }) |
+| `/api/goals/reset?creatorId=X` | DELETE | Clear this week's goal (resets to 0) |
 
 ### AI Chat (SSE streaming):
 | Endpoint | Method | Purpose |
@@ -171,7 +186,8 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 | `/api/schedule/list?creatorId=X` | GET | List posts |
 | `/api/schedule/update/{id}` | PUT | Update post |
 | `/api/schedule/delete/{id}` | DELETE | Delete post |
-| `/api/schedule/approve/{id}` | PUT | Approve post |
+| `/api/schedule/approve/{id}` | PUT | Approve post (PENDING → APPROVED) |
+| `/api/schedule/publish/{id}` | PUT | Mark published (only works on APPROVED — else 400) |
 
 ### Content Generation (Bearer required):
 | Endpoint | Platform |
@@ -214,7 +230,7 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
    - SVG circular progress ring, turns green at 100%
 4. **Today's Focus** — shows ALL posts scheduled today (stacked by time, sorted ascending)
    - Uses local timezone (`getFullYear/getMonth/getDate`) not `toISOString()`
-5. **Summary Cards** — next post, content ready, platforms, this week
+5. **Summary Cards** — next post, content ready, platforms, this week. "Content Ready" counts only PENDING drafts in the future; "This Week" counts only upcoming posts (past-date posts excluded from both)
 6. **Weekly Plan Generator** — AI-powered 7-day content plan with day cards, edit, save to calendar
 7. **MAYA Suggestions** — AI-generated operational tips with static fallback on error
 8. **Upcoming Schedule Preview** — next 4 posts with platform icons
@@ -225,6 +241,10 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 - **Past dates:** Cannot open drafts (dimmed, opacity-60, cursor-not-allowed, no click handler)
 - **Time validation:** `min` attribute on datetime-local uses local time, `handleSave` checks `scheduledDate <= now` (exact minute, not just date)
 - **`formatDate`** uses `getFullYear/getMonth/getDate` (NOT toISOString — timezone fix)
+- **Status flow:** PENDING → Approve → APPROVED → Mark Published → PUBLISHED (enum: PENDING/APPROVED/REJECTED/PUBLISHED/FAILED — only first, second, fourth used in UI)
+- **Action buttons per status:** PENDING → Delete/Approve/Published; APPROVED → Delete/Published; PUBLISHED → Delete
+- **Publish:** `PUT /api/schedule/publish/{id}` — backend rejects if not APPROVED; frontend surfaces the exact backend error message ("Only approved posts can be marked as published")
+- **Modal buttons** stack vertically on mobile (flex-col, flex-wrap) so they don't overflow
 
 ### Insights Page (`/analytics`):
 - 4 operational insight cards (posting consistency, followers, best engagement window, ER)
@@ -269,6 +289,49 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 - `AuthGuard` redirects unauthenticated users to `/login`
 - `ConnectAccountGate` blocks analytics/tools until Phyllo account connected
 
+### Registration — OTP Email Verification (register.jsx):
+- Two-step flow: Form → OTP verification
+- Step 1: name/email/password → `POST /auth/send-otp` → sends 6-digit code
+- Step 2: 6-box OTP input (auto-focus next, backspace nav, arrow keys, paste support, auto-submit on 6th digit)
+- 5-minute countdown timer + resend button (30s cooldown)
+- Attempts-remaining display; handles 400/410/429 states
+- On success: `verify-otp` returns JWT → saved to sessionStorage → auto-login → redirect to `/plan`
+- Modern two-panel design (dark gradient branding left, form right)
+
+### Forgot / Reset Password:
+- **ForgotPassword.jsx** (`/forgot-password`): email → `POST /auth/forgot-password` → always shows "check your email" (anti-enumeration); handles 429
+- **ResetPassword.jsx** (`/reset-password?token=X`): reads token from URL, new+confirm password fields, `POST /auth/reset-password`
+  - Handles SUCCESS (→ redirect to /login), WEAK_PASSWORD (400), INVALID_TOKEN (400), EXPIRED (410), missing token → invalid-link screen
+- Email link format: `https://mayamanage.com/reset-password?token=<token>`
+
+### Platform-Aware Dashboard:
+The `/api/analytics/dashboard/{creatorId}` response now includes 3 top-level fields: `platform`, `platformInsights[]`, `unavailableMetrics[]`. Core 24 fields unchanged, but some come back null per platform.
+- **`platform`** — "INSTAGRAM" | "FACEBOOK" | "YOUTUBE" | "OTHER" (uppercase; unknown → treated as OTHER)
+- **Platform badge** in header (brand icon + label), theme color per platform (teal stays app primary)
+- **PlatformInsights** — generic loop over `platformInsights[]` (FB/YT hero cards); only renders if non-empty (IG/OTHER skip); formats by unit (%, ratio, hours, count, views/sub); `value:null` → "Not enough data yet"
+- **RateCards cross-reference:** each card's `metricName` checked against `unavailableMetrics` keys (exact match):
+  - in unavailable → "Not available on {platform}" + reason tooltip
+  - `currentValue: null` & not unavailable → "Not enough data yet"
+  - else → render value
+- **Null-guarded core sections:** comment-based sections (sentiment, superfans, commonWords, questions, mostLikedComments, cta/caption/questionsVsStatements) hidden entirely when null (Facebook has none). Hashtags guard `.length === 0`.
+- **unavailableMetrics footer:** muted list of blocked metrics with `reason` tooltips
+- **HealthScore:** platform-aware — `componentScores` keys vary per platform (loop dynamically via Object.entries). Grades: Excellent/Good/Fair/Critical/Insufficient Data. `score:null` or "Insufficient Data" → dedicated empty state
+- **Followers card** uses the SELECTED account (matched by id), not `connectedAccounts[0]` (fixed platform mismatch bug)
+
+### Sync Status Flow (SyncStatusScreen.jsx):
+Polls `GET /api/phyllo/sync-status/{creatorId}`. States: `SYNCING` | `SYNCING_WAITING` | `COMPLETED` | `FAILED` | `IDLE`
+- `SYNCING`/`IDLE` → spinner + step progress, poll every 5s (2-min timeout → "taking longer" screen)
+- `SYNCING_WAITING` → STOP polling, show clock + "we'll email you when ready" + "Check Status" (one-shot poll) + "Go to Dashboard Anyway"
+- `COMPLETED` → success + data freshness banner → View Dashboard
+- `FAILED` → error + syncError message + Try Again
+- Response includes `dataFreshness` (RECENT | HISTORIC | STALE) → stored in CreatorContext, drives dashboard banner
+- **Dashboard renders partial/null data** — never blank, never infinite spinner (own sync spinner removed; SyncStatusScreen + email handle waiting)
+
+### Markdown Rendering (all chat surfaces):
+- react-markdown + remark-gfm on AIChatPanel, AIChatPage, DemoPage
+- Supports tables, strikethrough, task lists, autolinks
+- **SSE newline fix:** empty `data:` line in stream → converted to `"\n"` so markdown line breaks render (bold, lists, headings)
+
 ---
 
 ## Technical Decisions
@@ -289,19 +352,28 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 | Weekly goal storage | Backend (`/api/goals/set`) | localStorage (cross-browser issue) |
 | Light mode borders | gray-300 + box-shadow | gray-100 (invisible) / gray-200 (too subtle) |
 | Rate limit UX | Error bubbles + cooldown + fallback | Silent failure |
+| Registration | OTP email verification (send-otp/verify-otp) | Direct registerUser (deprecated) |
+| Goal clear | Backend DELETE /api/goals/reset | localStorage-only target:0 |
+| Platform metric gaps | Cross-reference unavailableMetrics + null-guard | Backend omits cards |
+| Health score empty | Dedicated "Insufficient Data" state | Broken ring showing 0/NaN |
+| Followers card source | Selected account (by id) | connectedAccounts[0] (wrong platform) |
+| Sync waiting | Stop polling + email notification + escape hatch | Infinite dashboard spinner |
+| Landing animation | Neural constellation canvas | Static floating dots (too subtle) |
 
 ---
 
 ## What's NOT Done Yet (Parked):
-1. Mobile responsive polish
-2. Real notification system
-3. Content history / saved generations
-4. Email digest integration
-5. Color system change from teal (user mentioned "not bound to teal")
-6. Backend: fix profile picture expiration (download and serve from own storage)
-7. Backend: fix OpenAI tool_calls memory issue causing `[ERROR]` in insights
-8. End-to-end test: register → login → connect → sync → plan → schedule → chat → disconnect/delete
-9. Code-splitting (bundle is 1.1MB — consider lazy loading routes)
+1. Real notification system (currently dummy data)
+2. Content history / saved generations
+3. Email digest integration
+4. Color system change from teal (user mentioned "not bound to teal")
+5. Code-splitting (bundle ~1.2MB / 340KB gzipped — consider lazy loading routes)
+6. No demo creators for FB/YT — can't visually test those layouts without connecting real accounts
+
+## Known Backend Items (not frontend):
+1. **Nightly sync duplicate-key bug** — sync re-inserts posts after clearing, hits `instagram_id` unique constraint. Both accounts fail. Root cause: analytics processing re-saves already-persisted posts. Backend fix needed (use merge/upsert or don't re-save in AnalyticsProcessingService).
+2. Profile picture expiration (Phyllo signed URLs) — frontend has icon failsafe; backend should download+serve from own storage
+3. OpenAI tool_calls memory issue causing `[ERROR]` in insights — frontend has fallback
 
 ---
 
@@ -313,10 +385,15 @@ https://maya-backend-service-326007673689.asia-southeast1.run.app
 - `index.css` global overrides handle dark mode for pages without explicit `dark:` classes
 - Phyllo SDK: `https://cdn.getphyllo.com/connect/v2/phyllo-connect.js` (loaded in index.html)
 - Recharts v2.15.3 for charts
-- react-markdown for AI chat responses
+- react-markdown + remark-gfm for AI chat responses (tables, lists, strikethrough)
 - @tailwindcss/typography for prose classes
 - `sessionId` (crypto.randomUUID()) sent with all chat requests
 - Creator IDs are DYNAMIC — never hardcode them
 - `apiHelper.js` conditionally adds Bearer based on `isDemo` flag
-- Privacy Policy at `/privacy`, Terms of Service at `/terms` — both list 14 platforms
-- All `localhost` references have been replaced with production Cloud Run URL
+- Privacy Policy at `/privacy`, Terms of Service at `/terms` — both list 14 platforms (region text updated to asia-southeast1)
+- All `localhost` references replaced with production Cloud Run URL (asia-southeast1)
+- Platform icons/colors aligned everywhere (AccountSwitcher, PlanPage, UserAccountMgnt) for all 14 platforms incl. LinkedIn/X/Twitch/Spotify — smart first-letter fallback for unknowns
+- Mobile responsive: header controls right-aligned, notification dropdown fixed positioning, marquee 200px cards/12s on mobile, capability cards auto-height on mobile, headings scale down
+- Landing page: neural constellation canvas (60 particles desktop / 30 mobile), feature marquee (seamless CSS loop), bento grid with mini UI previews, before/after section, colored platform pills, early-access CTA, sticky CTA bar on scroll
+- Metric tooltips: each Advanced Metrics rate card has ℹ️ hover tooltip with plain-English explanation (separate from the deep "What do these mean?" modal)
+- Weekly goal has a clear/reset button (× icon) → DELETE /api/goals/reset

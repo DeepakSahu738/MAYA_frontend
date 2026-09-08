@@ -42,7 +42,7 @@ export default function PlatformInsights({ platformInsights, platform }) {
                 )}
               </div>
               {formatted !== null ? (
-                <span className={`text-2xl font-bold ${config.accent}`}>{formatted}</span>
+                <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">{formatted}</span>
               ) : (
                 <span className="text-sm text-gray-400 dark:text-gray-500 italic">Not enough data yet</span>
               )}
