@@ -73,7 +73,7 @@ export default function CreatePage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800">
       <main className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">

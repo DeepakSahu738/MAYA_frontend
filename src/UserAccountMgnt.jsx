@@ -376,7 +376,7 @@ export default function UserAccountMgnt(){
 
     return (
         <div id="UserAccountMgnt">
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pt-16">
+            <div className="min-h-full bg-gray-50 dark:bg-gray-800 font-sans">
                 <main className="container mx-auto px-4 py-8 max-w-6xl">
                     <div className="flex flex-col lg:flex-row gap-8">
 

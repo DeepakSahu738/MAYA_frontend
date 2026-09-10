@@ -159,14 +159,40 @@ function InsightCards({ dashboardData, connectedAccounts, selectedCreator }) {
 // --- AI Insights Panel ---
 function AIInsightsPanel({ selectedCreator }) {
   const { authState } = useCreator();
-  const [insights, setInsights] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const insightsKey = `maya-insights-${selectedCreator?.id ?? "none"}`;
 
+  // Load persisted insights for this creator (survives tab switch + refresh)
+  const [insights, setInsights] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`maya-insights-${selectedCreator?.id ?? "none"}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`maya-insights-${selectedCreator?.id ?? "none"}`);
+      return !!(saved && JSON.parse(saved).length > 0);
+    } catch { return false; }
+  });
+
+  // On account change: reload from storage; only refetch if nothing saved
   useEffect(() => {
     if (!selectedCreator) return;
-    setLoaded(false);
-    setInsights([]);
+    try {
+      const saved = sessionStorage.getItem(insightsKey);
+      const parsed = saved ? JSON.parse(saved) : [];
+      if (parsed.length > 0) {
+        setInsights(parsed);
+        setLoaded(true);
+      } else {
+        setInsights([]);
+        setLoaded(false);
+      }
+    } catch {
+      setInsights([]);
+      setLoaded(false);
+    }
   }, [selectedCreator?.id]);
 
   useEffect(() => {
@@ -221,6 +247,7 @@ function AIInsightsPanel({ selectedCreator }) {
           setInsights(["⏳ MAYA is taking a breather — insights will refresh shortly.", "📊 Your metrics are still visible below.", "💡 Try again in a minute for fresh AI insights."]);
         } else if (lines.length > 0) {
           setInsights(lines);
+          try { sessionStorage.setItem(insightsKey, JSON.stringify(lines)); } catch {}
         } else {
           setInsights(["📊 Your account data is being analyzed.", "📅 Check your posting consistency from the Plan page.", "💡 Use Ask MAYA for personalized recommendations."]);
         }
@@ -345,7 +372,7 @@ function DashboardContent() {
   // Dashboard data is shown as-is. Sync waiting is handled by SyncStatusScreen + email notification.
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pt-16">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800 font-sans">
       <main className="max-w-5xl mx-auto px-4 py-8">
 
         {/* Page Header */}

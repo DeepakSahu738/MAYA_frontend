@@ -5,7 +5,7 @@ import SyncStatusScreen from "../components/SyncStatusScreen";
 
 const API_BASE = "https://maya-backend-service-326007673689.asia-southeast1.run.app";
 
-export default function PhylloConnectButton({ className = "" }) {
+export default function PhylloConnectButton({ className = "", children, variant = "button" }) {
   const { authState, addConnectedAccount } = useCreator();
   const [connecting, setConnecting] = useState(false);
   const [syncingAccount, setSyncingAccount] = useState(null); // { creatorId, platform, username }
@@ -140,23 +140,30 @@ export default function PhylloConnectButton({ className = "" }) {
 
   return (
     <>
-      <button
-        onClick={handleConnect}
-        disabled={connecting}
-        className={`flex items-center space-x-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
-      >
-        {connecting ? (
-          <>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            <span>Connecting...</span>
-          </>
-        ) : (
-          <>
-            <span className="material-symbols-outlined text-lg">link</span>
-            <span>Connect Social Account</span>
-          </>
-        )}
-      </button>
+      {variant === "custom" ? (
+        // Caller supplies its own markup (e.g. sidebar row). className fully controls styling.
+        <button onClick={handleConnect} disabled={connecting} className={className}>
+          {children ?? (connecting ? "Connecting..." : "Connect Social Account")}
+        </button>
+      ) : (
+        <button
+          onClick={handleConnect}
+          disabled={connecting}
+          className={`flex items-center space-x-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
+        >
+          {connecting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Connecting...</span>
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-lg">link</span>
+              <span>Connect Social Account</span>
+            </>
+          )}
+        </button>
+      )}
 
       {/* Sync Status Overlay */}
       {syncingAccount && (

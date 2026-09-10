@@ -17,7 +17,7 @@ export default function ConnectAccountGate({ children }) {
 
   // Logged in but no accounts — show connect prompt
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 flex items-center justify-center px-4">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800 py-16 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
         <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 rounded-full flex items-center justify-center">
           <span className="material-symbols-outlined text-teal-600 dark:text-teal-400 text-4xl">link</span>

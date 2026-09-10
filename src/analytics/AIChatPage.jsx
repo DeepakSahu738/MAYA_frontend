@@ -31,15 +31,47 @@ function getUserName() {
 
 function ChatContent() {
   const { selectedCreator } = useCreator();
-  const [messages, setMessages] = useState([]);
+  const creatorKey = selectedCreator?.id ?? "none";
+  const storageKey = `maya-chat-${creatorKey}`;
+
+  // Load persisted messages for this creator (survives tab switch + refresh)
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`maya-chat-${selectedCreator?.id ?? "none"}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId] = useState(() => {
+    const k = `maya-chat-session-${selectedCreator?.id ?? "none"}`;
+    const existing = sessionStorage.getItem(k);
+    if (existing) return existing;
+    const fresh = crypto.randomUUID();
+    sessionStorage.setItem(k, fresh);
+    return fresh;
+  });
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
   const userName = getUserName();
   const greeting = getGreeting();
+
+  // Reload messages when the selected account changes
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      setMessages(saved ? JSON.parse(saved) : []);
+    } catch { setMessages([]); }
+  }, [creatorKey]);
+
+  // Persist messages whenever they change
+  useEffect(() => {
+    try {
+      if (messages.length > 0) sessionStorage.setItem(storageKey, JSON.stringify(messages));
+      else sessionStorage.removeItem(storageKey);
+    } catch {}
+  }, [messages, storageKey]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -137,7 +169,7 @@ function ChatContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pt-16">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800 font-sans">
       <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col min-h-[calc(100vh-64px)]">
 
         {/* Top Bar */}

@@ -29,6 +29,7 @@ const Header = () => {
   const NAV_ITEMS = [
     { label: "Plan", path: "/plan", icon: "calendar_month" },
     { label: "Calendar", path: "/calendar", icon: "date_range" },
+    { label: "Board", path: "/board", icon: "view_kanban" },
     { label: "Improve", path: "/analytics", icon: "trending_up" },
     { label: "Ask MAYA", path: "/chat", icon: "smart_toy" },
     { label: "Create", path: "/create", icon: "edit_square" },

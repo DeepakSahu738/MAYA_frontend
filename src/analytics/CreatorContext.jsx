@@ -166,7 +166,22 @@ export function CreatorProvider({ children }) {
         connectedAccounts,
         allCreators,
         selectedCreator,
-        setSelectedCreator: (creator) => { setSelectedCreator(creator); setDataFreshness(null); },
+        setSelectedCreator: (creator) => {
+          // Clear the previous account's persisted chat + plan when switching to a different account
+          const prevId = selectedCreator?.id;
+          const nextId = creator?.id;
+          if (prevId && prevId !== nextId) {
+            try {
+              sessionStorage.removeItem(`maya-chat-${prevId}`);
+              sessionStorage.removeItem(`maya-chat-session-${prevId}`);
+              sessionStorage.removeItem(`maya-plan-${prevId}`);
+              sessionStorage.removeItem(`maya-suggestions-${prevId}`);
+              sessionStorage.removeItem(`maya-insights-${prevId}`);
+            } catch {}
+          }
+          setSelectedCreator(creator);
+          setDataFreshness(null);
+        },
         loading,
         authState,
         refreshAuth,

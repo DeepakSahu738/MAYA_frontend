@@ -64,6 +64,7 @@ src/
 ├── tools/
 │   ├── PlanPage.jsx                 # Operations Dashboard (streak, weekly goal, today's focus, plan generator, suggestions)
 │   ├── CalendarPage.jsx             # Monthly grid calendar with CRUD modals (past-date prevention)
+│   ├── BoardPage.jsx                # Jira-style weekly board (@dnd-kit): posts + tasks, drag-to-reschedule
 │   ├── CommentsPage.jsx             # Chat-based comments management
 │   └── TrendsPage.jsx              # Chat-based trends
 │
@@ -107,7 +108,8 @@ src/
 
 ### Auth-protected:
 - `/plan` — Operations Dashboard (default landing for logged-in users)
-- `/calendar` — Content Calendar
+- `/calendar` — Content Calendar (monthly grid)
+- `/board` — Weekly Board (Jira-style, posts + tasks, drag-to-reschedule)
 - `/analytics` — Improve → Insights
 - `/chat` — Ask MAYA
 - `/create` — Content Lab (platform picker)
@@ -334,10 +336,82 @@ Polls `GET /api/phyllo/sync-status/{creatorId}`. States: `SYNCING` | `SYNCING_WA
 
 ---
 
+## Dashboard Shell (Phase 1 — dashboard redesign)
+
+The authenticated app was restructured from a top-header layout into a full dashboard shell (left sidebar + top bar), inspired by a Consen.ai-style reference.
+
+- **`src/components/DashboardLayout.jsx`** — the shell for ALL authenticated pages. Collapsible left sidebar (default OPEN, `w-72`); top bar with breadcrumb + `NotificationBell` + `DarkModeToggle`. Renders page content via nested `<Outlet/>`.
+- **`App.jsx`** — split into two layouts:
+  - `PublicLayout` (Header/Footer) → Home, login, register, forgot/reset password, privacy, terms, 404, demo.
+  - `DashboardLayout` (sidebar shell) → all auth-protected routes as nested `<Outlet/>` children.
+- **Sidebar "Platforms" section** — connected accounts listed here; clicking one switches the active account (AccountSwitcher removed from the top bar to avoid duplication). Logo + "MAYA" wordmark link back to `/`.
+- Removed `pt-16` from all authenticated pages (`min-h-screen … pt-16` → `min-h-full …`) since the shell no longer has a fixed top header offset.
+- **Dark theme:** shell `dark:bg-gray-800`, sidebar `dark:bg-gray-700/30`, header `dark:bg-gray-800/90` with an elevation shadow ("popup effect" — same bg as content, lifted by shadow rather than a contrasting color or solid border lines). Active nav item = teal (bg tint + left accent bar + colored icon).
+- **`src/tools/BoardPage.jsx`** — Phase 2 Weekly Board at `/board` (BUILT — see "Weekly Board" section below). Jira-style drag-drop board, intentionally SEPARATE from the monthly `/calendar` grid (overview vs working view). Uses `@dnd-kit/core` (react-beautiful-dnd rejected — deprecated).
+- Known follow-up: some page components still use inner `dark:bg-gray-900` (darker than the new gray-800 shell) — may want to unify later.
+
+## Chat & Plan Persistence (survives tab-switch + browser refresh)
+
+Ask MAYA chat and the generated weekly plan previously reset whenever you navigated away (component unmount) or refreshed. Now persisted in `sessionStorage`, keyed per creator.
+
+- **AIChatPage.jsx** (`ChatContent`): `messages` lazy-init from `sessionStorage["maya-chat-{creatorId}"]`; `sessionId` persisted at `maya-chat-session-{creatorId}` (stable across remounts). Effects: reload on `creatorKey` change, persist on `messages` change (removes key when empty).
+- **PlanPage.jsx** (`WeeklyPlanSection`): `plan` lazy-init from `sessionStorage["maya-plan-{creatorId}"]`; reload on `planKey` change, persist on `plan` change. Covers both `handleGenerate` and inline `saveEdit` mutations.
+- **PlanPage.jsx** (`MayaSuggestionsPanel`): `suggestions` + `loaded` flag lazy-init from `sessionStorage["maya-suggestions-{creatorId}"]`. On account change, reloads from storage and only refetches if nothing saved. Persists ONLY real AI content (not the rate-limited/empty static fallbacks) so a transient fallback never gets cached.
+- **AnalyticsDashboard.jsx** (`AIInsightsPanel`, the Improve page): same pattern with `sessionStorage["maya-insights-{creatorId}"]`. Raw `dashboardData` (real analytics) intentionally still refetches each visit — only the AI-generated insight lines are persisted.
+- **Clear on account switch:** `CreatorContext.setSelectedCreator` wrapper removes the *previous* creator's `maya-chat-*`, `maya-chat-session-*`, `maya-plan-*`, `maya-suggestions-*`, and `maya-insights-*` keys when switching to a different account (keeps the new account's own state). Per-creator keying already isolates accounts; this actively wipes the stale one.
+- **Persistence key summary:** `maya-chat-{id}`, `maya-chat-session-{id}`, `maya-plan-{id}`, `maya-suggestions-{id}`, `maya-insights-{id}`.
+
+## Dark Theme Unification
+
+All authenticated page root containers changed from `dark:bg-gray-900` → `dark:bg-gray-800` to match the dashboard shell (no more darker page vs lighter shell mismatch): BoardPage, CalendarPage, UserAccountMgnt, ConnectAccountGate, AnalyticsDashboard, ContentGenerator, AIChatPage, PlanPage, TrendsPage, CommentsPage, CreatePage.
+- **Left untouched:** public pages (Home, DemoPage, Terms, Privacy, NotFound, ErrorBoundary, header.jsx) — not in the shell — and intentional nested-depth accents (Calendar past-date cells `dark:bg-gray-900/50`, AIChatPanel message area).
+- `index.css` global overrides already map `.bg-gray-50` and `.bg-white` to `#1f2937` (gray-800) in dark mode, so the explicit classes reinforce rather than conflict.
+
+---
+
+## Weekly Board (Phase 2 — `src/tools/BoardPage.jsx`, route `/board`)
+
+A Jira-style weekly planning board built on `@dnd-kit/core` (+ `/sortable`, `/utilities`). Handles TWO item types on one board — content **posts** and to-do **tasks** — both served by the shared schedule API. Layout: **7 day-columns (Mon–Sun)**; dragging a card to another day reschedules it.
+
+**Backend contract (shared with Calendar):** every `/api/schedule/list` row carries `itemType` (`POST` | `TASK`) and `taskStatus` (`TODO` | `IN_PROGRESS` | `DONE`, null for posts).
+- **POST** → uses `status` (PENDING/APPROVED/PUBLISHED/REJECTED/FAILED), `caption`, `mediaType`, `hashtags`, `mediaUrl`.
+- **TASK** → uses `taskStatus`, `caption` = task title; `mediaType` "NONE", `mediaUrl` null, `hashtags` empty. `status` is present but ignored.
+- Create a task: `POST /api/schedule/create` with `{ itemType: "TASK", taskStatus, caption, scheduledFor }`. Omitting `itemType` defaults to POST (unchanged behavior).
+- Reschedule (both types): `PUT /api/schedule/update/{id}` with `{ scheduledFor }`.
+- Change task status: `PUT /api/schedule/update/{id}` with `{ taskStatus }`.
+- Approve/Publish (`PUT /api/schedule/approve|publish/{id}`) are **POST-only** — hidden on task cards.
+
+**UI behavior:**
+- **Day columns** via `useDroppable` (id = `YYYY-MM-DD`); **cards** via `useDraggable`; `DragOverlay` shows a tilted preview. `PointerSensor` with 6px activation distance so clicks (open modal / cycle status) don't trigger drags.
+- **Drag between days** → optimistic `setItems` + `PUT { scheduledFor }`, **preserving original time-of-day** (only the date swaps); rolls back on error. Matches decision: change time only via the card's edit form.
+- **PostCard** — solid border, media icon, POST status pill + left accent, ⚠ "missed" icon when past-due and not published.
+- **TaskCard** — dashed teal border; the status pill is a **click-to-cycle button** (TODO → IN_PROGRESS → DONE via `PUT { taskStatus }`); "Overdue" badge when past its day and not DONE.
+- **Create** — "+" on each day column header (and an empty-column add button) opens `ItemModal` with a **Post/Task toggle**; Post shows caption/hashtags/mediaType/datetime, Task shows title/status/day.
+- **Edit** — clicking a card opens the same modal in edit mode (delete + post-only approve/publish).
+- **Week nav** — Today / prev / next; header shows the week range and item count. Week starts Monday (`startOfWeek` shifts Sun to −6).
+- Responsive grid: 1 col mobile → 2 (sm) → 4 (lg) → 7 (xl).
+- Route + sidebar "Board" (view_kanban) + `PAGE_META` already wired in `App.jsx` / `DashboardLayout.jsx`.
+
+**Follow-ups / not yet done:** an optional "By Status" view (3 Jira columns) toggle — backend already supports grouping by `taskStatus`; not runtime-tested against live backend yet (relies on the documented task contract).
+
+---
+
 ## Technical Decisions
 
 | Decision | Chosen | Rejected |
 |----------|--------|----------|
+| Auth app layout | Dashboard shell (sidebar + top bar) for all auth pages | Top-header everywhere / partial rollout |
+| Sidebar default | Collapsible but default OPEN (w-72) | Default collapsed / narrow |
+| Account switching | Sidebar "Platforms" section | Duplicate switcher in top bar |
+| Header dark style | Same bg as content + elevation shadow | gray-900/gray-950 (stands out / too black) / solid border lines |
+| Calendar vs Board | Separate (monthly grid + Jira-style `/board`) | Merge into one view |
+| Board drag-drop lib | @dnd-kit/core | react-beautiful-dnd (deprecated) |
+| Board item model | One schedule entity + `itemType` enum (POST/TASK) | Separate tasks table/endpoint |
+| Board columns | 7 day-columns (Mon–Sun) | Status columns (To Do/Doing/Done) |
+| Task status change | Click-to-cycle pill on card | Drag between status columns (v1) |
+| Board drag reschedule | Change date, keep time-of-day | Also change time on drag |
+| Chat/plan persistence | sessionStorage keyed by creatorId | Context-only (lost on refresh) |
+| On account switch | Clear previous account's chat + plan | Keep stale data |
 | Positioning | AI creator operations assistant | Analytics tool / Hootsuite clone |
 | Default landing | `/plan` | `/analytics` |
 | Guest login | Removed (demo page instead) | Limited guest trial |

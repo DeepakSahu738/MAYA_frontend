@@ -206,15 +206,41 @@ function getStaticFallback(scheduledPosts, connectedAccounts) {
 }
 
 function MayaSuggestionsPanel({ selectedCreator, scheduledPosts, connectedAccounts }) {
-  const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   const { authState } = useCreator();
+  const suggestKey = `maya-suggestions-${selectedCreator?.id ?? "none"}`;
 
+  // Load persisted suggestions for this creator (survives tab switch + refresh)
+  const [suggestions, setSuggestions] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`maya-suggestions-${selectedCreator?.id ?? "none"}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`maya-suggestions-${selectedCreator?.id ?? "none"}`);
+      return !!(saved && JSON.parse(saved).length > 0);
+    } catch { return false; }
+  });
+
+  // On account change: reload from storage; only mark unloaded (refetch) if nothing saved
   useEffect(() => {
     if (!selectedCreator) return;
-    setLoaded(false);
-    setSuggestions([]);
+    try {
+      const saved = sessionStorage.getItem(suggestKey);
+      const parsed = saved ? JSON.parse(saved) : [];
+      if (parsed.length > 0) {
+        setSuggestions(parsed);
+        setLoaded(true);
+      } else {
+        setSuggestions([]);
+        setLoaded(false);
+      }
+    } catch {
+      setSuggestions([]);
+      setLoaded(false);
+    }
   }, [selectedCreator?.id]);
 
   useEffect(() => {
@@ -273,6 +299,7 @@ function MayaSuggestionsPanel({ selectedCreator, scheduledPosts, connectedAccoun
         const lines = fullText.split("\n").filter(l => l.trim().length > 0).slice(0, 5);
         if (lines.length > 0) {
           setSuggestions(lines);
+          try { sessionStorage.setItem(suggestKey, JSON.stringify(lines)); } catch {}
         } else if (rateLimited) {
           setSuggestions(["⏳ MAYA is taking a breather — suggestions will refresh shortly", ...getStaticFallback(scheduledPosts, connectedAccounts).slice(0, 3)]);
         } else {
@@ -351,7 +378,15 @@ const FORMAT_STYLES = {
 const LOADING_STEPS = ["Analyzing your recent posts...", "Identifying content pillars...", "Detecting patterns...", "Crafting your plan...", "Almost there..."];
 
 function WeeklyPlanSection({ selectedCreator, onPlanGenerated }) {
-  const [plan, setPlan] = useState(null);
+  const planKey = `maya-plan-${selectedCreator?.id ?? "none"}`;
+
+  // Load persisted plan for this creator (survives tab switch + refresh)
+  const [plan, setPlan] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`maya-plan-${selectedCreator?.id ?? "none"}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [expandedDay, setExpandedDay] = useState(null);
@@ -360,6 +395,22 @@ function WeeklyPlanSection({ selectedCreator, onPlanGenerated }) {
   const [saving, setSaving] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
   const [remaining, setRemaining] = useState(null);
+
+  // Reload plan when the selected account changes
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(planKey);
+      setPlan(saved ? JSON.parse(saved) : null);
+    } catch { setPlan(null); }
+  }, [planKey]);
+
+  // Persist plan whenever it changes
+  useEffect(() => {
+    try {
+      if (plan) sessionStorage.setItem(planKey, JSON.stringify(plan));
+      else sessionStorage.removeItem(planKey);
+    } catch {}
+  }, [plan, planKey]);
 
   const handleGenerate = async () => {
     if (!selectedCreator || rateLimited) return;
@@ -952,7 +1003,7 @@ export default function PlanPage() {
   }, [selectedCreator?.id, authState.token]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800">
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome */}
         <WelcomeHeader selectedCreator={selectedCreator} connectedAccounts={connectedAccounts} />

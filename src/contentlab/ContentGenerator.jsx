@@ -164,7 +164,7 @@ export default function ContentGenerator({ platform }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pt-16">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800 font-sans">
       <main className="max-w-5xl mx-auto px-4 py-8">
 
         {/* Header */}

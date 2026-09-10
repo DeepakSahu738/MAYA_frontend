@@ -274,7 +274,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
+    <div className="min-h-full bg-gray-50 dark:bg-gray-800">
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -328,7 +328,7 @@ export default function CalendarPage() {
                 <div
                   key={idx}
                   onClick={() => isPast ? null : openCreateModal(cell.date)}
-                  className={`group relative min-h-[100px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 transition-colors ${
+                  className={`group relative min-h-[100px] min-w-0 overflow-hidden p-1.5 border-b border-r border-gray-100 dark:border-gray-700 transition-colors ${
                     isPast
                       ? "bg-gray-100/60 dark:bg-gray-900/50 cursor-not-allowed opacity-60"
                       : "cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/10"
@@ -366,7 +366,7 @@ export default function CalendarPage() {
                         key={post.id}
                         onClick={(e) => { e.stopPropagation(); openEditModal(post); }}
                         title={`${post.caption || "Untitled"}${isMissed(post) ? " — scheduled time passed" : ""}`}
-                        className={`flex items-center space-x-1 pl-1.5 pr-1 py-1 rounded-md bg-gray-50 dark:bg-gray-700/60 border-l-[3px] ${STATUS_ACCENT[post.status] || STATUS_ACCENT.PENDING} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm transition-all`}
+                        className={`flex items-center space-x-1 min-w-0 overflow-hidden pl-1.5 pr-1 py-1 rounded-md bg-gray-50 dark:bg-gray-700/60 border-l-[3px] ${STATUS_ACCENT[post.status] || STATUS_ACCENT.PENDING} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm transition-all`}
                       >
                         {/* Status dot */}
                         <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[post.status] || STATUS_DOT.PENDING}`} />
