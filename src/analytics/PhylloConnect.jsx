@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import { useCreator } from "./CreatorContext";
 import SyncStatusScreen from "../components/SyncStatusScreen";
@@ -21,10 +22,15 @@ export default function PhylloConnectButton({ className = "", children, variant 
     setShowGuide(true);
   };
 
-  // Closing / continuing from the modal → launch the Phyllo SDK
+  // "Continue" from the modal → launch the Phyllo SDK
   const proceedFromGuide = () => {
     setShowGuide(false);
     handleConnect();
+  };
+
+  // Cancel (X or click outside) → just close, do NOT open Phyllo
+  const cancelGuide = () => {
+    setShowGuide(false);
   };
 
   const handleConnect = async () => {
@@ -182,11 +188,12 @@ export default function PhylloConnectButton({ className = "", children, variant 
         </button>
       )}
 
-      {/* Instagram guidance modal — closing OR continuing opens the Phyllo widget */}
-      {showGuide && (
+      {/* Instagram guidance modal — portaled to body so it always covers the full screen.
+          Cancel (X / outside) closes without connecting; only "Continue" opens Phyllo. */}
+      {showGuide && createPortal(
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-          onClick={proceedFromGuide}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={cancelGuide}
         >
           <div
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
@@ -195,9 +202,9 @@ export default function PhylloConnectButton({ className = "", children, variant 
             {/* Header */}
             <div className="relative px-6 pt-6 pb-4 text-center border-b border-gray-100 dark:border-gray-700">
               <button
-                onClick={proceedFromGuide}
+                onClick={cancelGuide}
                 className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                title="Close & continue"
+                title="Cancel"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -244,17 +251,24 @@ export default function PhylloConnectButton({ className = "", children, variant 
             </div>
 
             {/* Footer */}
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 flex space-x-2">
+              <button
+                onClick={cancelGuide}
+                className="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
               <button
                 onClick={proceedFromGuide}
-                className="w-full py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors inline-flex items-center justify-center space-x-2"
+                className="flex-1 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors inline-flex items-center justify-center space-x-2"
               >
                 <span className="material-symbols-outlined text-lg">link</span>
                 <span>Continue to connect</span>
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Sync Status Overlay */}

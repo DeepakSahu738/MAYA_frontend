@@ -78,6 +78,22 @@ export default function DashboardLayout() {
   const token = sessionStorage.getItem("token");
   const email = token ? getEmailFromToken(token) : null;
 
+  // Display name + initials for the account avatar (image comes in a later update)
+  let displayName = null;
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      displayName = payload.name || payload.firstname || null;
+    } catch { /* ignore */ }
+  }
+  const initials = (() => {
+    const src = displayName || email || "";
+    const parts = src.trim().split(/[\s@._-]+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  })();
+
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
@@ -257,6 +273,16 @@ export default function DashboardLayout() {
           <div className="flex items-center space-x-2 flex-shrink-0">
             <NotificationBell />
             <DarkModeToggle />
+            {/* Account avatar — initials for now, image in a later update */}
+            <Link
+              to="/UserAccountMgnt"
+              title={displayName || email || "Account"}
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-teal-500 to-cyan-500 shadow-sm hover:ring-2 hover:ring-teal-300 dark:hover:ring-teal-600 transition-all ${
+                isActive("/UserAccountMgnt") ? "ring-2 ring-teal-400" : ""
+              }`}
+            >
+              {initials}
+            </Link>
           </div>
         </header>
 
